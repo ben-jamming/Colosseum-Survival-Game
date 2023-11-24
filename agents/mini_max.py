@@ -1,7 +1,7 @@
 
 class MiniMax():
     """
-    General implementation of MiniMax algorithm
+    General implementation of MiniMax algorithm with alpha-beta pruning
     
     a singleton class with one public method: get Action
 
@@ -9,7 +9,8 @@ class MiniMax():
       - responsible for returning th minmaxed move given a state
       - params:
             - generate_children: a function that takes a state and returns a list of children states
-                    - should be a list of states, where each state is a tuple of (board, player, adversary, max step)
+                    - should be a list of (state) , for our case a list of (board, player, adversary, max step, board placed), but this shouldnt make a difference to the general implementation
+                    - if generate_children is None, then the algorithm will assume that the state is terminal
             - utility: a function that takes a state and returns a utility value
                     - should return a return a float value for the utility of the state
             - is_terminal: a function that takes a state and returns a boolean
