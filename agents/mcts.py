@@ -24,6 +24,11 @@ class MCTS():
         - Selection 
               - find the most promising node
               - if node is not fully expanded, expand it
+              - what it means to be expanded:
+                    - Each node has a set of children that are possible moves
+                    - however, to start off with , these are all unvisited
+                    - a child becomes visited we select it to run a simulation
+                    - once all of childrens nodes are visited, the node is considered expanded
               - if it is expanded keep selecting until a leaf node is reached
               - Promising means that it has a high value and has not been explored much
               - formula: UCT = V + C * sqrt(ln(N) / n)
