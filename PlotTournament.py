@@ -25,25 +25,40 @@ class TournamentVisualizer:
         tournament_data = pd.read_csv(csv_file)
 
         # Creating a pivot table for the scores
-        pivot_table_player_1 = tournament_data.pivot_table(index='player_1', columns='player_2', values='player_1_score', aggfunc=np.sum)
-        pivot_table_player_2 = tournament_data.pivot_table(index='player_2', columns='player_1', values='player_2_score', aggfunc=np.sum)
+        pivot_table_player_1 = tournament_data.pivot_table(index='p1', columns='p2', values='p1_wins')#, aggfunc=np.sum)
+        pivot_table_player_2 = tournament_data.pivot_table(index='p2', columns='p1', values='p2_wins')#, aggfunc=np.sum)
+
+        # print the pivot tables
+        print(pivot_table_player_1)
+        print(pivot_table_player_2)
         
         # Combine the two pivot tables
-        combined_pivot = pivot_table_player_1.add(pivot_table_player_2, fill_value=0)
+        combined_pivot = pivot_table_player_1.combine_first(pivot_table_player_2)
 
-        # Replace NaN values with 0
-        combined_pivot = combined_pivot.fillna(0)
+        print(combined_pivot)
+
+        total_wins = combined_pivot.sum(axis=1).sort_values(ascending=False)
+        combined_pivot= combined_pivot.reindex(total_wins.index)
+        combined_pivot = combined_pivot[total_wins.index]
+
+        print(combined_pivot)
+
+        # make a mask so nans don't show up in the heatmap
+        # 0 values still should show up
+        mask = combined_pivot.isnull()
 
         # Plot the heatmap
         plt.figure(figsize=(10, 8))
-        sns.heatmap(combined_pivot, annot=True, cmap='coolwarm', fmt="g")
+        ax = sns.heatmap(combined_pivot, annot=True, cmap='coolwarm', fmt="g", mask=mask)
         plt.title('Head-to-Head Tournament Scores')
+        # put oppoenent label on top
+        ax.xaxis.tick_top()
         plt.xlabel('Opponent')
         plt.ylabel('Player')
         plt.show()
 
     @staticmethod
-    def visualize_total_scores(csv_file):
+    def visualize_total_wins(csv_file):
         """
         Static method to visualize the total scores for each player.
         """
@@ -51,43 +66,43 @@ class TournamentVisualizer:
         tournament_data = pd.read_csv(csv_file)
 
         # Calculate total scores for each player
-        player_1_scores = tournament_data.groupby('player_1')['player_1_score'].sum()
-        player_2_scores = tournament_data.groupby('player_2')['player_2_score'].sum()
+        player_1_scores = tournament_data.groupby('p1')['p1_wins'].sum()
+        player_2_scores = tournament_data.groupby('p2')['p2_wins'].sum()
         total_scores = player_1_scores.add(player_2_scores, fill_value=0)
 
         # Plot the bar chart
         total_scores.sort_values().plot(kind='barh')
-        plt.title('Total Scores for Each Player')
+        plt.title('Total wins for Each Player')
         plt.xlabel('Total Score')
         plt.ylabel('Player')
         plt.show()
 
     @staticmethod
-    def visualize_average_match_duration(csv_file):
+    def visualize_max_match_duration(csv_file):
         """
         Static method to visualize the average match duration for each player.
         """
         # Load the data
         tournament_data = pd.read_csv(csv_file)
 
-        # Convert time strings to lists of floats
-        tournament_data['player_1_time'] = tournament_data['player_1_time'].apply(lambda x: eval(x))
-        tournament_data['player_2_time'] = tournament_data['player_2_time'].apply(lambda x: eval(x))
+        # # Convert time strings to lists of floats
+        # tournament_data['p1_maxtime'] = tournament_data['player_1_time'].apply(lambda x: eval(x))
+        # tournament_data['player_2_time'] = tournament_data['player_2_time'].apply(lambda x: eval(x))
 
-        # Calculate average time for each player
-        tournament_data['player_1_avg_time'] = tournament_data['player_1_time'].apply(np.mean)
-        tournament_data['player_2_avg_time'] = tournament_data['player_2_time'].apply(np.mean)
+        # # Calculate average time for each player
+        # tournament_data['player_1_avg_time'] = tournament_data['player_1_time'].apply(np.mean)
+        # tournament_data['player_2_avg_time'] = tournament_data['player_2_time'].apply(np.mean)
 
-        avg_time_player_1 = tournament_data.groupby('player_1')['player_1_avg_time'].mean()
-        avg_time_player_2 = tournament_data.groupby('player_2')['player_2_avg_time'].mean()
+        max_time_player_1 = tournament_data.groupby('p1')['p1_max_time'].max()
+        max_time_player_2 = tournament_data.groupby('p2')['p2_max_time'].max()
 
-        # Combine and average the times for players regardless of their position
-        avg_times = avg_time_player_1.add(avg_time_player_2, fill_value=0) / 2
+        # Combine and max the times for players regardless of their position
+        max_times = max_time_player_1.combine(max_time_player_2, max, fill_value=0)
 
         # Plot the bar chart
-        avg_times.sort_values().plot(kind='barh')
-        plt.title('Average Match Duration for Each Player')
-        plt.xlabel('Average Duration (seconds)')
+        max_times.sort_values().plot(kind='barh')
+        plt.title('Max Turn Duration for Each Player')
+        plt.xlabel('Duration (seconds)')
         plt.ylabel('Player')
         plt.show()
 
@@ -95,5 +110,5 @@ class TournamentVisualizer:
 # Usage example
 csv_file = 'simulator_results.csv'  # Replace with the path to your CSV file
 TournamentVisualizer.visualize_score_heatmap(csv_file)
-TournamentVisualizer.visualize_total_scores(csv_file)
-TournamentVisualizer.visualize_average_match_duration(csv_file)
+TournamentVisualizer.visualize_total_wins(csv_file)
+TournamentVisualizer.visualize_max_match_duration(csv_file)
