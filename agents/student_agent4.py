@@ -364,7 +364,7 @@ class StudentAgent4(Agent):
             self.propagate_to_parent(explorationNode, win)
             numIter += 1
 
-        print("NumIter = " + str(numIter) + "\n")
+        #print("NumIter = " + str(numIter) + "\n")
         #     print('end of loop\n\n\n')
         for m in tree.root.children:
             game_over, p0, p1 = self.check_endgame(m.mypos, m.advpos, len(m.board), m.board)

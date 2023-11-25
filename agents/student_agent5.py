@@ -18,16 +18,16 @@ CHILD_GENERATION_DECAY = 0
 SIMULATION_DECAY = 1 # decay for worth of simulation results
 SIMULATION_CONST = 1
 
-@register_agent("student_agent")
-class StudentAgent(Agent):
+@register_agent("student_agent5")
+class StudentAgent5(Agent):
     """
     A dummy class for your implementation. Feel free to use this class to
     add any helper functionalities needed for your agent.
     """
 
     def __init__(self):
-        super(StudentAgent, self).__init__()
-        self.name = "StudentAgent"
+        super(StudentAgent5, self).__init__()
+        self.name = "StudentAgent5"
         self.dir_map = {
             "u": 0,
             "r": 1,
@@ -351,7 +351,7 @@ class StudentAgent(Agent):
             numIter += 1
 
         #     print('end of loop\n\n\n')
-        print("NumIter = " + str(numIter) + "\n")
+        #print("NumIter = " + str(numIter) + "\n")
         for m in tree.root.children:
             game_over, p0, p1 = self.check_endgame(m.mypos, m.advpos, len(m.board), m.board)
             if p0 > p1 : 
