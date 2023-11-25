@@ -1,4 +1,6 @@
-matplotlib==3.5.1
+pandas
+seaborn
+matplotlib
 numpy>=1.22.2
 pytest==7.0.1
 tqdm==4.62.3

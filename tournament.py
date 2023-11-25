@@ -1,6 +1,7 @@
 import subprocess
 import itertools
 import csv
+import os
 
 class Tournament:
     _instance = None
@@ -17,12 +18,16 @@ class Tournament:
 
     def run(self):
         """Runs the tournament."""
-        for player1, player2 in itertools.combinations(self.players, 2):
+        for player1, player2 in itertools.combinations_with_replacement(self.players, 2):
             self._run_simulation(player1, player2)
         # Optionally, read and process the results from the CSV file
 
     def _run_simulation(self, player1, player2):
         """Initiates a set of games between two players."""
+        # clear the results file ny deleting it
+        result_csv_file = "simulator_results.csv"
+        if os.path.exists(result_csv_file):
+            os.remove(result_csv_file)
         command = [
             'python3', 'simulator.py', 
             '--player_1', player1, '--player_2', player2, 
