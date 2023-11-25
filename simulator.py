@@ -4,6 +4,7 @@ from utils import all_logging_disabled
 import logging
 from tqdm import tqdm
 import numpy as np
+import csv
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
@@ -93,37 +94,49 @@ class Simulator:
         p2_win_count = 0
         p1_times = []
         p2_times = []
+
         if self.args.display:
             logger.warning("Since running autoplay mode, display will be disabled")
         self.args.display = False
-        with all_logging_disabled():
-            for i in tqdm(range(self.args.autoplay_runs)):
-                swap_players = i % 2 == 0
-                board_size = np.random.randint(args.board_size_min, args.board_size_max)
-                p0_score, p1_score, p0_time, p1_time = self.run(
-                    swap_players=swap_players, board_size=board_size
-                )
-                if swap_players:
-                    p0_score, p1_score, p0_time, p1_time = (
-                        p1_score,
-                        p0_score,
-                        p1_time,
-                        p0_time,
+
+        with open("simulator_results.csv", 'a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            if csvfile.tell() == 0:  # Write header if file is empty
+                writer.writerow(['player_1', 'player_2', 
+                                 'player_1_score', 'player_2_score', 
+                                 'player_1_time', 'player_2_time', 
+                                 'player_1_wins', 'player_2_wins', 'board_size'])
+
+            with all_logging_disabled():
+                for i in tqdm(range(self.args.autoplay_runs)):
+                    swap_players = i % 2 == 0
+                    board_size = np.random.randint(self.args.board_size_min, self.args.board_size_max)
+                    p0_score, p1_score, p0_time, p1_time = self.run(
+                        swap_players=swap_players, board_size=board_size
                     )
-                if p0_score > p1_score:
-                    p1_win_count += 1
-                elif p0_score < p1_score:
-                    p2_win_count += 1
-                else:  # Tie
-                    p1_win_count += 1
-                    p2_win_count += 1
-                p1_times.extend(p0_time)
-                p2_times.extend(p1_time)
+                    if swap_players:
+                        p0_score, p1_score, p0_time, p1_time = (
+                            p1_score,
+                            p0_score,
+                            p1_time,
+                            p0_time,
+                        )
+                    if p0_score > p1_score:
+                        p1_win_count += 1
+                    elif p0_score < p1_score:
+                        p2_win_count += 1
+                    else:  # Tie
+                        p1_win_count += 1
+                        p2_win_count += 1
+                    p1_times.extend(p0_time)
+                    p2_times.extend(p1_time)
+                    # Append result to CSV
+                    writer.writerow([self.args.player_1, self.args.player_2, p0_score, p1_score, p0_time, p1_time, p1_win_count, p2_win_count, board_size])
 
         logger.info(
-            f"Player {PLAYER_1_NAME} win percentage: {p1_win_count / self.args.autoplay_runs}. Maxium turn time was {np.round(np.max(p1_times),5)} seconds.")
+            f"Player {PLAYER_1_NAME} win percentage: {p1_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p1_times),5)} seconds.")
         logger.info(
-            f"Player {PLAYER_2_NAME} win percentage: {p2_win_count / self.args.autoplay_runs}. Maxium turn time was {np.round(np.max(p2_times),5)} seconds.")
+            f"Player {PLAYER_2_NAME} win percentage: {p2_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p2_times),5)} seconds.")
 
 if __name__ == "__main__":
     args = get_args()
