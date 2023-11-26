@@ -1,5 +1,7 @@
 import heapq
 
+from numpy import ndarray
+
 def get_possible_moves(board, player, adversary):
     pass
 
@@ -7,7 +9,7 @@ def h(current, adversary):
     # Manhattan distance
     return abs(current[0] - adversary[0]) + abs(current[1] - adversary[1])
 
-def is_terminal(board, player, adversary, get_possible_moves: function) -> bool:
+def is_terminal(board: ndarray, player: tuple, adversary: tuple, get_possible_moves: function) -> bool:
     """
     board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
     note that to cells share a wall position if they are adjacent
@@ -38,7 +40,7 @@ def is_terminal(board, player, adversary, get_possible_moves: function) -> bool:
             if neighbor not in g_score or tentative_cheapest_distance < g_score[neighbor]:
                 parent_node[neighbor] = current
                 g_score[neighbor] = tentative_cheapest_distance
-                f_score = tentative_cheapest_distance + h(neighbor)
+                f_score = tentative_cheapest_distance + h(neighbor, adversary)
                 heapq.heappush(open_list, (f_score, neighbor))
 
     # No path found, it's a terminal state
