@@ -66,8 +66,28 @@ def dijkstra(board, start, get_possible_moves):
 
     return distances
 
-def dual_bfs_for_territory_search(board, player, adversary, get_possible_moves):
+def count_closest_cells(adversary_distances, player_distances):
+    """
+    Count the number of cells that are closer to the player than the adversary.
+    This takes a dict of distances from the adversary and a dict of distances from the player.
+    It's the result of running Dijkstra's algorithm to calculate the shortest 
+    path from the player and the adversary to all other cells.
 
+    Returns:
+        int: The difference in the number of cells that are closer to the player than the adversary.
+    """
+    # Count the number of cells that are closer to the player than the adversary
+    closest_cells = 0
+    for cell in player_distances:
+        if cell in adversary_distances:
+            if player_distances[cell] < adversary_distances[cell]:
+                closest_cells += 1
+            elif adversary_distances[cell] < player_distances[cell]:
+                closest_cells -= 1
+
+    return closest_cells
+
+def dual_bfs_for_territory_search(board, player, adversary, get_possible_moves):
     """
     Perform a simultaneous BFS from both the player and the adversary to determine territory control.
     
