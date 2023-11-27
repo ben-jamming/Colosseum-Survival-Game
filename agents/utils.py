@@ -261,8 +261,6 @@ def utility(state):
         player_score, adversary_score = score(state)
         if player_score > adversary_score:
             return float('inf')
-        elif player_score < adversary_score:
-            return float('-inf')
         else:
             return float('-inf')
     p_t, a_t = simple_territory_search(state)
