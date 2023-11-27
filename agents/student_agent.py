@@ -54,23 +54,22 @@ class StudentAgent(Agent):
             'adversary': adv_pos,
             'max_step': max_step,
             'is_player_turn': True,
+            'action_history': [],
         }
 
 
-        new_state = AlphaBeta.get_action(
+        new_action = AlphaBeta.get_action(
             generate_children,
             utility,
             state,
-            max_depth=1
+            max_depth=2
         )
 
         # print(new_state)
-
-        new_move = get_move_from_state(state, new_state)
 
         time_taken = time.time() - start_time
         
         print("My AI's turn took ", time_taken, "seconds.")
 
 
-        return new_move
+        return new_action
