@@ -264,11 +264,14 @@ def utility(state):
         elif player_score < adversary_score:
             return float('-inf')
         else:
-            return float('-inf')
+            # we want a tie ot be bad
+            # but we want it to be slight better than a loss
+            # use max float minus a couple
+            return float('inf') - 100
     p_t, a_t = simple_territory_search(state)
     point_p = len(p_t)
     point_a = len(a_t)
-    return point_p * point_p - point_a * point_a
+    return point_p - point_a#-(dist * dist) # * point_p - point_a * point_a
 
 
 def score(state)-> (float, float) :
@@ -431,7 +434,7 @@ def undo_last_action(state):
     if len(history) == 0:
         return
     turn, prev_position, action = history.pop()
-    if not turn:
+    if turn:
         state['player'] = prev_position
     else:
         state['adversary'] = prev_position
