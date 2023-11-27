@@ -132,7 +132,7 @@ class World:
         # Fill some random barriers. Few enough to ensure we never start 
         # with a full wall
         num_barriers = self.board_size // 2 - 1
-        num_barriers = num_barriers * 6
+        # num_barriers = num_barriers * 14
 
         # Random barriers (symmetric)
         for _ in range(num_barriers):

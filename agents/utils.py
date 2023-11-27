@@ -11,7 +11,10 @@ def h(current, adversary):
     # rount to 2 decimal places
     return dist
 
-def get_adjacent_moves(position, state, include_adversary=True):
+def get_adjacent_moves(position, state, 
+                       include_adversary=True,
+                       include_player=True
+                       ):
     """
     This returns the list of directly adjacent positions to a given position
     Taking into account the walls and the adversary
@@ -37,6 +40,8 @@ def get_adjacent_moves(position, state, include_adversary=True):
         x_i, y_i = walls_cell[i](x, y)
         
         if (x_i, y_i) == state['adversary'] and include_adversary:
+            continue
+        if (x_i, y_i) == state['player'] and include_player:
             continue
         
         moves.append((x_i, y_i))
@@ -73,9 +78,12 @@ def is_terminal(state):
         explored[current[1]] = current[0]
         current = current[1] # Get the node from the tuple
         if current == adversary:
-            return False, explored # We were able to reach the adversary so state not terminal
+            return False # We were able to reach the adversary so state not terminal
 
-        for neighbor in get_adjacent_moves(current, state, include_adversary=False):
+        for neighbor in get_adjacent_moves(current, state,
+                                           include_adversary=False,
+                                            include_player=False
+                                           ):
             # Generate the list of possible moves from the current node
             tentative_cheapest_distance = g_score[current] + 1 
             
@@ -164,7 +172,7 @@ def dual_bfs_for_territory_search(state):
             if current_player not in visited:  # Ensure each cell is processed only once
                 visited.add(current_player)
                 # Add all reachable positions from the current position to the queue
-                for neighbor in get_adjacent_moves(current_player, state):
+                for neighbor in get_adjacent_moves(current_player, state, include_adversary=True):
                     if neighbor not in visited:
                         player_queue.append((neighbor, player_dist + 1))
 
@@ -173,7 +181,7 @@ def dual_bfs_for_territory_search(state):
             current_adversary, adversary_dist = adversary_queue.popleft()
             if current_adversary not in visited:
                 visited.add(current_adversary)
-                for neighbor in get_adjacent_moves(current_adversary, state):
+                for neighbor in get_adjacent_moves(current_adversary, state, include_player=True):
                     if neighbor not in visited:
                         adversary_queue.append((neighbor, adversary_dist + 1))
 
@@ -213,33 +221,33 @@ def utility(state):
     # - the utility is the difference in territory controlled by the player and the adversary
     return dual_bfs_for_territory_search(state)
 
-def find_reachable_positions(board, agent):
-    """
-    Helper function for the score function.
-    Find all positions reachable by the given agent within their section
-    """
+# def find_reachable_positions(board, agent):
+#     """
+#     Helper function for the score function.
+#     Find all positions reachable by the given agent within their section
+#     """
 
-    # Initialize the queue with the agent's position
-    queue = deque([agent])
-    # Set to keep track of visited positions to avoid re-visiting
-    visited = set()
-    # Set to keep track of reachable positions
-    reachable = set()
+#     # Initialize the queue with the agent's position
+#     queue = deque([agent])
+#     # Set to keep track of visited positions to avoid re-visiting
+#     visited = set()
+#     # Set to keep track of reachable positions
+#     reachable = set()
 
-    # Continue BFS as long as there are positions to process in the queue
-    while queue:
-        current = queue.popleft()
-        if current not in visited:  # Ensure each cell is processed only once
-            visited.add(current)
-            # Add all reachable positions from the current position to the queue
-            for neighbor in get_adjacent_moves(current, board):
-                if neighbor not in visited:
-                    queue.append(neighbor)
-                    reachable.add(neighbor)
+#     # Continue BFS as long as there are positions to process in the queue
+#     while queue:
+#         current = queue.popleft()
+#         if current not in visited:  # Ensure each cell is processed only once
+#             visited.add(current)
+#             # Add all reachable positions from the current position to the queue
+#             for neighbor in get_adjacent_moves(current, board):
+#                 if neighbor not in visited:
+#                     queue.append(neighbor)
+#                     reachable.add(neighbor)
 
-    return len(reachable)
+#     return len(reachable)
 
-def score(board: ndarray, player: tuple, adversary: tuple)-> (float, float) :
+def score(state)-> (float, float) :
     """
     Once we know the game is over, we need to determine the score of each player
     The score is given by the number of cells that the player can reach in their section
@@ -251,12 +259,18 @@ def score(board: ndarray, player: tuple, adversary: tuple)-> (float, float) :
 
     We then can do the same for the adversary's section.
     """
-    player_score = find_reachable_positions(board, player)
-    adversary_score = find_reachable_positions(board, adversary)
+    state = state.copy()
+    state['is_player_turn'] = True
+    player_score = len(get_possible_positions(state, depth_limited=False, include_adversary=False))
+    state['is_player_turn'] = False
+    adversary_score = len(get_possible_positions(state, depth_limited=False, include_player=False))
     return player_score, adversary_score
     
 
-def get_possible_positions(state):
+def get_possible_positions(state, 
+                           depth_limited=True,
+                          include_adversary=True,
+                          include_player=True):
     """
     board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
     note that to cells share a wall position if they are adjacent
@@ -285,6 +299,8 @@ def get_possible_positions(state):
 
     # visited stores each visited position with its shortest path distance
     init_pos = state['player'] if state['is_player_turn'] else state['adversary']
+    include_adversary = include_adversary if state['is_player_turn'] else False
+    include_player = include_player if not state['is_player_turn'] else False
 
     queue = []
     distances = {}
@@ -294,9 +310,12 @@ def get_possible_positions(state):
 
     while (len(queue) > 0):
         u = queue.pop(0)
-        if distances[u] >= state['max_step']:
+        if distances[u] >= state['max_step'] and depth_limited:
             continue
-        for v in get_adjacent_moves(u, state):
+        for v in get_adjacent_moves(u, state, 
+                                    include_adversary=include_adversary,
+                                    include_player=include_player
+                                    ):
             if v not in distances:
                 distances[v] = distances[u] + 1
                 queue.append(v)

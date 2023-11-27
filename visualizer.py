@@ -24,7 +24,12 @@ if __name__ == "__main__":
     state["is_player_turn"] = False
     moves_p1 = utils.get_possible_positions(state)
 
-    is_terminal_state, explored = utils.is_terminal(state)
+    is_terminal_state = utils.is_terminal(state)
+    scores = utils.score(state)
+    p0_score = scores[0]
+    p1_score = scores[1]
+    print("p0_score: ", p0_score)
+    print("p1_score: ", p1_score)
     # print(is_terminal_state)
     # print(explored)
 
