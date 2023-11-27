@@ -152,12 +152,12 @@ class UIEngine:
                 text = ""
                 if valid_moves_p0 is not None:
                     if (x_pos, y_pos) in valid_moves_p0:
-                        text += str(f'[{valid_moves_p0[(x_pos, y_pos)]}]')
+                        # text += str(f'[{valid_moves_p0[(x_pos, y_pos)]:.0f}]')
                         cur_color = "green"
                         fill_box = True
                 if valid_moves_p1 is not None:
                     if (x_pos, y_pos) in valid_moves_p1:
-                        text += str(f'[{valid_moves_p1[(x_pos, y_pos)]}]')
+                        # text += str(f'[{valid_moves_p1[(x_pos, y_pos)]:.0f}]')
                         cur_color = "blue"
                         fill_box = True
                 # if both player can reach teh same cell color it purple

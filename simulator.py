@@ -102,12 +102,14 @@ class Simulator:
         with open("simulator_results.csv", 'a', newline='') as csvfile:
             writer = csv.writer(csvfile)
             if csvfile.tell() == 0:  # Write header if file is empty
-                writer.writerow(['player_1', 'player_2', 
-                                 'player_1_score', 'player_2_score', 
-                                 'player_1_time', 'player_2_time', 
-                                 'player_1_wins', 'player_2_wins', 'board_size'])
+                writer.writerow(['p1', 'p2', 
+                                 'p1_avg_score', 'p2_avg_score', 
+                                 'p1_max_time', 'p2_max_time', 
+                                 'p1_wins', 'p2_wins', 'p1_win_pct', 'p2_win_pct'])
 
             with all_logging_disabled():
+                p0_avg_score = 0
+                p1_avg_score = 0
                 for i in tqdm(range(self.args.autoplay_runs)):
                     swap_players = i % 2 == 0
                     board_size = np.random.randint(self.args.board_size_min, self.args.board_size_max)
@@ -130,8 +132,14 @@ class Simulator:
                         p2_win_count += 1
                     p1_times.extend(p0_time)
                     p2_times.extend(p1_time)
+                    p0_avg_score += p0_score
+                    p1_avg_score += p1_score
                     # Append result to CSV
-                    writer.writerow([self.args.player_1, self.args.player_2, p0_score, p1_score, p0_time, p1_time, p1_win_count, p2_win_count, board_size])
+                p0_avg_score = p0_avg_score / self.args.autoplay_runs
+                p0_avg_score = p1_avg_score / self.args.autoplay_runs
+                p_0_max_time = np.round(np.max(p1_times),5)
+                p_1_max_time = np.round(np.max(p2_times),5)
+                writer.writerow([self.args.player_1, self.args.player_2, p0_score, p1_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs])
 
         logger.info(
             f"Player {PLAYER_1_NAME} win percentage: {p1_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p1_times),5)} seconds.")

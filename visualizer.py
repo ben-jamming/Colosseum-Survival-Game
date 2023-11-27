@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 from agents import utils
 
 if __name__ == "__main__":
-    world_1 = world.World(board_size=6, display_delay=1)
+    world_1 = world.World(board_size=12, display_delay=1)
     player = world_1.p0_pos
     adversary = world_1.p1_pos
     max_step = world_1.max_step
     is_player_turn = world_1.turn == 0
 
-    ui_engine = ui.UIEngine(6, world=world_1)
+    ui_engine = ui.UIEngine(12, world=world_1)
     state = {
         "board": world_1.chess_board,
         "player": tuple(player),
@@ -24,6 +24,9 @@ if __name__ == "__main__":
     state["is_player_turn"] = False
     moves_p1 = utils.get_possible_positions(state)
 
+    is_terminal_state, explored = utils.is_terminal(state)
+    # print(is_terminal_state)
+    # print(explored)
 
     while True:
       # if the window closes, stop the simulation

@@ -132,6 +132,7 @@ class World:
         # Fill some random barriers. Few enough to ensure we never start 
         # with a full wall
         num_barriers = self.board_size // 2 - 1
+        num_barriers = num_barriers * 6
 
         # Random barriers (symmetric)
         for _ in range(num_barriers):
@@ -154,13 +155,13 @@ class World:
 
         # Check that initialization does not fall into a weird case, 
         # such as agent stuck in tiny box to begin. Repeat if necessary.
-        self.initial_end, _, _ = self.check_endgame()
-        while np.array_equal(self.p0_pos, self.p1_pos) or self.initial_end:
-            self.p0_pos = np.random.randint(0, self.board_size, size=2)
-            self.p1_pos = self.board_size - 1 - self.p0_pos
-            self.initial_end, _, _ = self.check_endgame()  
+        # self.initial_end, _, _ = self.check_endgame()
+        # while np.array_equal(self.p0_pos, self.p1_pos) or self.initial_end:
+        #     self.p0_pos = np.random.randint(0, self.board_size, size=2)
+        #     self.p1_pos = self.board_size - 1 - self.p0_pos
+        #     self.initial_end, _, _ = self.check_endgame()  
               
-        assert(not self.initial_end)
+        # assert(not self.initial_end)
 
         if display_ui:
             # Initialize UI Engine
@@ -389,6 +390,7 @@ class World:
             win_blocks = p1_score
         else:
             player_win = -1  # Tie
+
         if player_win >= 0:
             logging.info(
                 f"Game ends! Player {self.player_names[player_win]} wins having control over {win_blocks} blocks!"
