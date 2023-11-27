@@ -52,11 +52,61 @@ def is_terminal(board, player, adversary):
     we can do an A* search from the player to the adversary, and if we cannot find a path, then
     we are in a terminal state
     """
-    pass
+    return False
 
 
+# dir_map = {
+#             "u": 0,
+#             "r": 1,
+#             "d": 2,
+#             "l": 3,
+#         }
+def get_adjacent_moves(position, state):
+    """
+    This returns the list of directly adjacent positions to a given position
+    Taking into account the walls and the adversary
+    """
 
-def get_possible_moves(board, player, adversary, max_step, is_player_turn):
+    moves = []
+    x = position[0]
+    y = position[1]
+
+    # DONT TOUCH THIS 
+    # THIS SHIT IS FINICKY AS FUCK
+    walls_cell = {
+        0: lambda a, b: (a-1, b),
+        1: lambda a, b: (a, b+1),
+        2: lambda a, b: (a+1, b),
+        3: lambda a, b: (a, b-1),
+    }
+
+    for i in range(4):
+        wall = state['board'][x][y][i]
+        if wall:
+            continue
+        x_i, y_i = walls_cell[i](x, y)
+        
+        if (x_i, y_i) == state['adversary']:
+            continue
+        
+        moves.append((x_i, y_i))
+    
+    return moves
+        
+        
+            
+
+"""
+We will define a state to be a dictionary with the following keys
+- board
+    - this is an mxmx4 grid, where m is the board size, and there are 4 wall positions
+- player
+- adversary
+- max_step
+- is_player_turn
+"""
+
+def get_possible_positions(state):
     """
     board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
     note that to cells share a wall position if they are adjacent
@@ -74,5 +124,57 @@ def get_possible_moves(board, player, adversary, max_step, is_player_turn):
 
     We also need to check if the board is in a game over state, if it is, we want to return an empty list
     """
-    pass
+
+    # we want to perform a breadth first search from the the player whos turn it is, to get to all reachable positions
+    # that have a manhattan distance of max_step or less
+    # The children of each node are the 4 adjacent positions
+    # except those that are blocked by a wall, or the adversary
+
+    # the queue should contain the position as well as the distance we travel to find that position
+    # if the distance is greater than max_step, we do not want to add it to the queue
+
+    # visited stores each visited position with its shortest path distance
+    init_pos = state['player'] if state['is_player_turn'] else state['adversary']
+
+    queue = []
+    distances = {}
+
+    distances[init_pos] = 0
+    queue.append(init_pos)
+
+    while (len(queue) > 0):
+        u = queue.pop(0)
+        if distances[u] >= state['max_step']:
+            continue
+        for v in get_adjacent_moves(u, state):
+            if v not in distances:
+                distances[v] = distances[u] + 1
+                queue.append(v)
+
+    return distances
+
+def get_possible_moves(state):
+    """
+    This uses all the possible positions to get the possible moves
+    A possible move is a position you can go where you can place a wall
+    each position has 4 possible moves, one for each wall
+    each placeable wall counts as a different move
+    A move is a tuple of (position, wall)
+    """
+    if is_terminal(state['board'], state['player'], state['adversary']):
+        return []
+    
+    possible_positions = get_possible_positions(state)
+    possible_moves = []
+    for position in possible_positions:
+        x = position[0]
+        y = position[1]
+        for i in range(4):
+            if state['board'][x][y][i]:
+                continue
+            possible_moves.append((position, i))
+    return possible_moves
+
+
+
 
