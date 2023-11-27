@@ -20,9 +20,8 @@ if __name__ == "__main__":
     }
 
 
-    moves_p0 = utils.get_possible_positions(state)
-    state["is_player_turn"] = False
-    moves_p1 = utils.get_possible_positions(state)
+    moves_p0 = utils.get_possible_positions(state, state["player"])
+    moves_p1 = utils.get_possible_positions(state, state["adversary"])
 
     is_terminal_state = utils.is_terminal(state)
     scores = utils.score(state)
@@ -45,8 +44,10 @@ if __name__ == "__main__":
       ui_engine.render(world_1.chess_board,
                         tuple(player),
                         tuple(adversary),
-                        valid_moves_p0=player_territory,
-                        valid_moves_p1=adversary_territory
+                        # valid_moves_p0=player_territory,
+                        # valid_moves_p1=adversary_territory
+                        valid_moves_p0=moves_p0,
+                        valid_moves_p1=moves_p1
       )
       # check for a keyboard interrupt of if the window is closed
       try:

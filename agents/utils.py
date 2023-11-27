@@ -2,7 +2,7 @@ import heapq
 import numpy as np
 from numpy import ndarray
 from collections import deque
-from copy import deepcopy
+import random
 
 def h(current, adversary):
 
@@ -10,9 +10,8 @@ def h(current, adversary):
     # rount to 2 decimal places
     return dist
 
-def get_adjacent_moves(position, state, 
-                       include_adversary=True,
-                       include_player=True
+def get_adjacent_moves(position, state,
+                       obstacles=[],
                        ):
     """
     This returns the list of directly adjacent positions to a given position
@@ -38,9 +37,7 @@ def get_adjacent_moves(position, state,
             continue
         x_i, y_i = walls_cell[i](x, y)
         
-        if (x_i, y_i) == state['adversary'] and include_adversary:
-            continue
-        if (x_i, y_i) == state['player'] and include_player:
+        if (x_i, y_i) in obstacles:
             continue
         
         moves.append((x_i, y_i))
@@ -78,10 +75,7 @@ def is_terminal(state):
         if current == adversary:
             return False # We were able to reach the adversary so state not terminal
 
-        for neighbor in get_adjacent_moves(current, state,
-                                           include_adversary=False,
-                                            include_player=False
-                                           ):
+        for neighbor in get_adjacent_moves(current, state):
             # Generate the list of possible moves from the current node
             tentative_cheapest_distance = g_score[current] + 1 
             
@@ -145,10 +139,12 @@ def simple_territory_search(state):
     if the adversary is closer, then the adversary controls that square
 
     """
-    player_dists = get_possible_positions(state, depth_limited=False)
-    state = deepcopy(state)
-    state['is_player_turn'] = not state['is_player_turn']
-    adversary_dists = get_possible_positions(state, depth_limited=False)
+    player_dists = get_possible_positions(state,
+                                          state['player'],
+                                           depth_limited=False)
+    adversary_dists = get_possible_positions(state,
+                                              state['adversary'],
+                                              depth_limited=False)
 
 
 
@@ -173,10 +169,6 @@ def simple_territory_search(state):
             player_territory[position] = player_dists[position]
         elif adversary_dists[position] < player_dists[position]:
             adversary_territory[position] = adversary_dists[position]
-        else:
-            player_territory[position] = player_dists[position]
-            adversary_territory[position] = adversary_dists[position]
-    
     
     return player_territory, adversary_territory
 
@@ -265,12 +257,18 @@ def utility(state):
     # New idea for implementation:
     # - use a dual BFS to determine territory control
     # - the utility is the difference in territory controlled by the player and the adversary
-
+    if is_terminal(state):
+        player_score, adversary_score = score(state)
+        if player_score > adversary_score:
+            return float('inf')
+        elif player_score < adversary_score:
+            return float('-inf')
+        else:
+            return float('-inf')
     p_t, a_t = simple_territory_search(state)
-    if state['is_player_turn']:
-        return len(p_t)
-    else:
-        return -len(a_t)
+    point_p = len(p_t)
+    point_a = len(a_t)
+    return point_p * point_p - point_a * point_a
 
 
 def score(state)-> (float, float) :
@@ -285,18 +283,22 @@ def score(state)-> (float, float) :
 
     We then can do the same for the adversary's section.
     """
-    state = deepcopy(state)
-    state['is_player_turn'] = True
-    player_score = len(get_possible_positions(state, depth_limited=False, include_adversary=False))
-    state['is_player_turn'] = False
-    adversary_score = len(get_possible_positions(state, depth_limited=False, include_player=False))
+
+    player_score = len(get_possible_positions(state,
+                                              state['player'],
+                                              depth_limited=False))
+                                              
+    adversary_score = len(get_possible_positions(state, 
+                                                  state['adversary'],
+                                                 depth_limited=False))
     return player_score, adversary_score
     
 
-def get_possible_positions(state, 
+def get_possible_positions(state,
+                           position,
                            depth_limited=True,
-                          include_adversary=True,
-                          include_player=True):
+                           obstacles=[]
+                           ):
     """
     board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
     note that to cells share a wall position if they are adjacent
@@ -323,9 +325,9 @@ def get_possible_positions(state,
     # the queue should contain the position as well as the distance we travel to find that position
     # if the distance is greater than max_step, we do not want to add it to the queue
 
-    init_pos = state['player'] if state['is_player_turn'] else state['adversary']
-    include_adversary = include_adversary if state['is_player_turn'] else False
-    include_player = include_player if not state['is_player_turn'] else False
+    init_pos = position
+
+
 
     queue = []
     distances = {}
@@ -338,8 +340,7 @@ def get_possible_positions(state,
         if distances[u] >= state['max_step'] - 1 and depth_limited:
             continue
         for v in get_adjacent_moves(u, state, 
-                                    include_adversary=include_adversary,
-                                    include_player=include_player
+                                    obstacles=obstacles,
                                     ):
             if v not in distances:
                 distances[v] = distances[u] + 1
@@ -357,8 +358,16 @@ def get_possible_moves(state):
     """
     if is_terminal(state):
         return []
-    
-    possible_positions = get_possible_positions(state)
+    if state['is_player_turn']:
+        possible_positions = get_possible_positions(state,
+                                                    state['player'],
+                                                    obstacles=[state['adversary']]
+                                                    )
+    else:
+        possible_positions = get_possible_positions(state,
+                                                    state['adversary'],
+                                                    obstacles=[state['player']]
+                                                    )
     possible_moves = []
     for position in possible_positions:
         x = position[0]
@@ -372,31 +381,76 @@ def get_possible_moves(state):
 def generate_children(state):
     """
     This generates the children of a given state
-    A child is a tuple of (board, player, adversary, max_step, is_player_turn)
+    An action that mutates the state of the board
     """
-    opposites = {0: 2, 1: 3, 2: 0, 3: 1}
-    moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
+    
     terminal = is_terminal(state)
     if terminal:
         return []
-    children = []
     possible_moves = get_possible_moves(state)
-    for move in possible_moves:
-        (position, wall) = move
-        new_state = deepcopy(state)
-        x = position[0]
-        y = position[1]
-        new_state['board'][x][y][wall] = True
-        move = moves[wall]
-        anti_x, anti_y = (x + move[0], y + move[1])
-        new_state['board'][anti_x][anti_y][opposites[wall]] = True
-        if new_state['is_player_turn']:
-            new_state['player'] = position
-        else:
-            new_state['adversary'] = position
-        new_state['is_player_turn'] = not new_state['is_player_turn']
-        children.append(new_state)
-    return children
+    if len(possible_moves) == 0:
+        return []
+    return possible_moves
+
+def perform_action(state, action):
+    """
+    mutates the state of the board given an action
+    action = (new_position, wall)
+    """
+    position, wall = action
+    x, y = position
+    opposites = {0: 2, 1: 3, 2: 0, 3: 1}
+    moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
+
+    # place wall, and opposite wall
+    state['board'][x][y][wall] = True
+    move = moves[wall]
+    anti_x, anti_y = (x + move[0], y + move[1])
+    state['board'][anti_x][anti_y][opposites[wall]] = True
+
+    # for each action, we save whos turn it was , and where they move from
+    # (turn, prev_position, action)
+    
+    # update player or adversary position
+
+    if state['is_player_turn']:
+        action_event = (state['is_player_turn'], state['player'], action)
+        state['player'] = position
+    else:
+        action_event = (state['is_player_turn'], state['adversary'], action)
+        state['adversary'] = position
+    
+    state['is_player_turn'] = not state['is_player_turn']
+    state.get('action_history', []).append(action_event)
+
+def undo_last_action(state):
+    """
+    undoes the action on the state
+    """
+    history = state.get('action_history', [])
+    if len(history) == 0:
+        return
+    turn, prev_position, action = history.pop()
+    if not turn:
+        state['player'] = prev_position
+    else:
+        state['adversary'] = prev_position
+
+    position, wall = action
+    x, y = position
+    opposites = {0: 2, 1: 3, 2: 0, 3: 1}
+    moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
+
+    # place wall, and opposite wall
+    state['board'][x][y][wall] = False
+    move = moves[wall]
+    anti_x, anti_y = (x + move[0], y + move[1])
+    state['board'][anti_x][anti_y][opposites[wall]] = False
+
+    state['is_player_turn'] = not state['is_player_turn']
+
+    
+
 
 def get_move_from_state(old_state, new_state):
     """
