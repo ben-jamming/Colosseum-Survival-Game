@@ -7,6 +7,8 @@ import numpy as np
 from copy import deepcopy
 import time
 
+from .alphabeta import AlphaBeta
+from .utils import utility, generate_children, get_move_from_state
 
 @register_agent("student_agent")
 class StudentAgent(Agent):
@@ -45,9 +47,30 @@ class StudentAgent(Agent):
         # time_taken during your search and breaking with the best answer
         # so far when it nears 2 seconds.
         start_time = time.time()
+
+        state = {
+            'board': chess_board,
+            'player': my_pos,
+            'adversary': adv_pos,
+            'max_step': max_step,
+            'is_player_turn': True,
+        }
+
+
+        new_state = AlphaBeta.get_action(
+            generate_children,
+            utility,
+            state,
+            max_depth=1
+        )
+
+        # print(new_state)
+
+        new_move = get_move_from_state(state, new_state)
+
         time_taken = time.time() - start_time
         
         print("My AI's turn took ", time_taken, "seconds.")
 
-        # dummy return
-        return my_pos, self.dir_map["u"]
+
+        return new_move

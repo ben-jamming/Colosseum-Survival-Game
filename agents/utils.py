@@ -2,16 +2,18 @@ import heapq
 import numpy as np
 from numpy import ndarray
 from collections import deque
+from copy import deepcopy
 
 def h(current, adversary):
-    # Manhattan distance
-    # return abs(current[0] - adversary[0]) + abs(current[1] - adversary[1])
-    # Euclidean distance
+
     dist =  np.sqrt((current[0] - adversary[0])**2 + (current[1] - adversary[1])**2)
     # rount to 2 decimal places
     return dist
 
-def get_adjacent_moves(position, state, include_adversary=True):
+def get_adjacent_moves(position, state, 
+                       include_adversary=True,
+                       include_player=True
+                       ):
     """
     This returns the list of directly adjacent positions to a given position
     Taking into account the walls and the adversary
@@ -38,12 +40,13 @@ def get_adjacent_moves(position, state, include_adversary=True):
         
         if (x_i, y_i) == state['adversary'] and include_adversary:
             continue
+        if (x_i, y_i) == state['player'] and include_player:
+            continue
         
         moves.append((x_i, y_i))
     
     return moves
 
-# def is_terminal(board: ndarray, player: tuple, adversary: tuple, get_adjacent_moves: function) -> bool:
 def is_terminal(state):
     """
     board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
@@ -73,9 +76,12 @@ def is_terminal(state):
         explored[current[1]] = current[0]
         current = current[1] # Get the node from the tuple
         if current == adversary:
-            return False, explored # We were able to reach the adversary so state not terminal
+            return False # We were able to reach the adversary so state not terminal
 
-        for neighbor in get_adjacent_moves(current, state, include_adversary=False):
+        for neighbor in get_adjacent_moves(current, state,
+                                           include_adversary=False,
+                                            include_player=False
+                                           ):
             # Generate the list of possible moves from the current node
             tentative_cheapest_distance = g_score[current] + 1 
             
@@ -130,6 +136,54 @@ def count_closest_cells(adversary_distances, player_distances):
 
     return closest_cells
 
+def simple_territory_search(state):
+    """
+    Do a bfs from both the player and the adversary and get their distance to every square
+    in the players reachable positions 
+    compare them against the adversary's distance to the same square
+    if the player is closer, then the player controls that square
+    if the adversary is closer, then the adversary controls that square
+
+    """
+    player_dists = get_possible_positions(state, depth_limited=False)
+    state = deepcopy(state)
+    state['is_player_turn'] = not state['is_player_turn']
+    adversary_dists = get_possible_positions(state, depth_limited=False)
+
+
+
+    player_territory = {}
+    adversary_territory = {}
+    # go through the union of the keys of both dicts
+    positions = set(player_dists.keys()).union(set(adversary_dists.keys()))
+
+    for position in positions:
+        # go through each position
+        # if only the player can reach it, then the player controls it
+        # if only the adversary can reach it, then the adversary controls it
+        # if both can reach it, then we need to compare the distances
+        # if the distance is equal, then they both control it
+        if position not in player_dists:
+            adversary_territory[position] = adversary_dists[position]
+            continue
+        if position not in adversary_dists:
+            player_territory[position] = player_dists[position]
+            continue
+        if player_dists[position] < adversary_dists[position]:
+            player_territory[position] = player_dists[position]
+        elif adversary_dists[position] < player_dists[position]:
+            adversary_territory[position] = adversary_dists[position]
+        else:
+            player_territory[position] = player_dists[position]
+            adversary_territory[position] = adversary_dists[position]
+    
+    
+    return player_territory, adversary_territory
+
+
+
+
+
 
 def dual_bfs_for_territory_search(state):
     """
@@ -164,7 +218,7 @@ def dual_bfs_for_territory_search(state):
             if current_player not in visited:  # Ensure each cell is processed only once
                 visited.add(current_player)
                 # Add all reachable positions from the current position to the queue
-                for neighbor in get_adjacent_moves(current_player, state):
+                for neighbor in get_adjacent_moves(current_player, state, include_adversary=True):
                     if neighbor not in visited:
                         player_queue.append((neighbor, player_dist + 1))
 
@@ -173,7 +227,7 @@ def dual_bfs_for_territory_search(state):
             current_adversary, adversary_dist = adversary_queue.popleft()
             if current_adversary not in visited:
                 visited.add(current_adversary)
-                for neighbor in get_adjacent_moves(current_adversary, state):
+                for neighbor in get_adjacent_moves(current_adversary, state, include_player=True):
                     if neighbor not in visited:
                         adversary_queue.append((neighbor, adversary_dist + 1))
 
@@ -185,7 +239,7 @@ def dual_bfs_for_territory_search(state):
             adversary_territory += 1
 
     # Utility is the difference in territory controlled by the player and the adversary
-    return player_territory - adversary_territory
+    return player_territory, adversary_territory
 
 def utility(state):
     """
@@ -211,35 +265,15 @@ def utility(state):
     # New idea for implementation:
     # - use a dual BFS to determine territory control
     # - the utility is the difference in territory controlled by the player and the adversary
-    return dual_bfs_for_territory_search(state)
 
-def find_reachable_positions(board, agent):
-    """
-    Helper function for the score function.
-    Find all positions reachable by the given agent within their section
-    """
+    p_t, a_t = simple_territory_search(state)
+    if state['is_player_turn']:
+        return len(p_t)
+    else:
+        return -len(a_t)
 
-    # Initialize the queue with the agent's position
-    queue = deque([agent])
-    # Set to keep track of visited positions to avoid re-visiting
-    visited = set()
-    # Set to keep track of reachable positions
-    reachable = set()
 
-    # Continue BFS as long as there are positions to process in the queue
-    while queue:
-        current = queue.popleft()
-        if current not in visited:  # Ensure each cell is processed only once
-            visited.add(current)
-            # Add all reachable positions from the current position to the queue
-            for neighbor in get_adjacent_moves(current, board):
-                if neighbor not in visited:
-                    queue.append(neighbor)
-                    reachable.add(neighbor)
-
-    return len(reachable)
-
-def score(board: ndarray, player: tuple, adversary: tuple)-> (float, float) :
+def score(state)-> (float, float) :
     """
     Once we know the game is over, we need to determine the score of each player
     The score is given by the number of cells that the player can reach in their section
@@ -251,12 +285,18 @@ def score(board: ndarray, player: tuple, adversary: tuple)-> (float, float) :
 
     We then can do the same for the adversary's section.
     """
-    player_score = find_reachable_positions(board, player)
-    adversary_score = find_reachable_positions(board, adversary)
+    state = deepcopy(state)
+    state['is_player_turn'] = True
+    player_score = len(get_possible_positions(state, depth_limited=False, include_adversary=False))
+    state['is_player_turn'] = False
+    adversary_score = len(get_possible_positions(state, depth_limited=False, include_player=False))
     return player_score, adversary_score
     
 
-def get_possible_positions(state):
+def get_possible_positions(state, 
+                           depth_limited=True,
+                          include_adversary=True,
+                          include_player=True):
     """
     board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
     note that to cells share a wall position if they are adjacent
@@ -283,8 +323,9 @@ def get_possible_positions(state):
     # the queue should contain the position as well as the distance we travel to find that position
     # if the distance is greater than max_step, we do not want to add it to the queue
 
-    # visited stores each visited position with its shortest path distance
     init_pos = state['player'] if state['is_player_turn'] else state['adversary']
+    include_adversary = include_adversary if state['is_player_turn'] else False
+    include_player = include_player if not state['is_player_turn'] else False
 
     queue = []
     distances = {}
@@ -294,9 +335,12 @@ def get_possible_positions(state):
 
     while (len(queue) > 0):
         u = queue.pop(0)
-        if distances[u] >= state['max_step']:
+        if distances[u] >= state['max_step'] - 1 and depth_limited:
             continue
-        for v in get_adjacent_moves(u, state):
+        for v in get_adjacent_moves(u, state, 
+                                    include_adversary=include_adversary,
+                                    include_player=include_player
+                                    ):
             if v not in distances:
                 distances[v] = distances[u] + 1
                 queue.append(v)
@@ -311,7 +355,7 @@ def get_possible_moves(state):
     each placeable wall counts as a different move
     A move is a tuple of (position, wall)
     """
-    if is_terminal(state['board'], state['player'], state['adversary']):
+    if is_terminal(state):
         return []
     
     possible_positions = get_possible_positions(state)
@@ -324,3 +368,65 @@ def get_possible_moves(state):
                 continue
             possible_moves.append((position, i))
     return possible_moves
+
+def generate_children(state):
+    """
+    This generates the children of a given state
+    A child is a tuple of (board, player, adversary, max_step, is_player_turn)
+    """
+    opposites = {0: 2, 1: 3, 2: 0, 3: 1}
+    moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
+    terminal = is_terminal(state)
+    if terminal:
+        return []
+    children = []
+    possible_moves = get_possible_moves(state)
+    for move in possible_moves:
+        (position, wall) = move
+        new_state = deepcopy(state)
+        x = position[0]
+        y = position[1]
+        new_state['board'][x][y][wall] = True
+        move = moves[wall]
+        anti_x, anti_y = (x + move[0], y + move[1])
+        new_state['board'][anti_x][anti_y][opposites[wall]] = True
+        if new_state['is_player_turn']:
+            new_state['player'] = position
+        else:
+            new_state['adversary'] = position
+        new_state['is_player_turn'] = not new_state['is_player_turn']
+        children.append(new_state)
+    return children
+
+def get_move_from_state(old_state, new_state):
+    """
+    compares the old state with the new state
+    either the adversary or the player has moved
+    we can easily check that
+    Then we can compare the walls to see which wall was placed
+    returns a tuple of ((x, y), wall)
+    """
+    old_board = old_state['board']
+    new_board = new_state['board']
+    old_player_pos = old_state['player']
+    new_player_pos = new_state['player']
+    old_p_x = old_player_pos[0]
+    old_p_y = old_player_pos[1]
+    new_p_x = new_player_pos[0]
+    new_p_y = new_player_pos[1]
+
+
+    for i in range(4):
+        old_wall = old_board[old_p_x][old_p_y][i]
+        new_wall = new_board[new_p_x][new_p_y][i]
+        if old_wall != new_wall:
+            return (new_player_pos, i)
+  
+    # reutrn one of the one of the walls that is not yet placed
+    print("PLACING A RANDOM WALL")
+    for i in range(4):
+        if not new_board[new_p_x][new_p_y][i]:
+            return (new_player_pos, i)
+    
+
+        
