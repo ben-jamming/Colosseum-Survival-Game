@@ -5,9 +5,7 @@ from collections import deque
 from copy import deepcopy
 
 def h(current, adversary):
-    # Manhattan distance
-    # return abs(current[0] - adversary[0]) + abs(current[1] - adversary[1])
-    # Euclidean distance
+
     dist =  np.sqrt((current[0] - adversary[0])**2 + (current[1] - adversary[1])**2)
     # rount to 2 decimal places
     return dist
@@ -49,7 +47,6 @@ def get_adjacent_moves(position, state,
     
     return moves
 
-# def is_terminal(board: ndarray, player: tuple, adversary: tuple, get_adjacent_moves: function) -> bool:
 def is_terminal(state):
     """
     board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
@@ -269,41 +266,12 @@ def utility(state):
     # - use a dual BFS to determine territory control
     # - the utility is the difference in territory controlled by the player and the adversary
 
-    # player_territory, adversary_territory = dual_bfs_for_territory_search(state)
-    # return player_territory - adversary_territory
     p_t, a_t = simple_territory_search(state)
     if state['is_player_turn']:
         return len(p_t)
     else:
         return -len(a_t)
 
-    return len(p_t) # - len(a_t) / (len(p_t) + len(a_t))
-
-# def find_reachable_positions(board, agent):
-#     """
-#     Helper function for the score function.
-#     Find all positions reachable by the given agent within their section
-#     """
-
-#     # Initialize the queue with the agent's position
-#     queue = deque([agent])
-#     # Set to keep track of visited positions to avoid re-visiting
-#     visited = set()
-#     # Set to keep track of reachable positions
-#     reachable = set()
-
-#     # Continue BFS as long as there are positions to process in the queue
-#     while queue:
-#         current = queue.popleft()
-#         if current not in visited:  # Ensure each cell is processed only once
-#             visited.add(current)
-#             # Add all reachable positions from the current position to the queue
-#             for neighbor in get_adjacent_moves(current, board):
-#                 if neighbor not in visited:
-#                     queue.append(neighbor)
-#                     reachable.add(neighbor)
-
-#     return len(reachable)
 
 def score(state)-> (float, float) :
     """
@@ -355,7 +323,6 @@ def get_possible_positions(state,
     # the queue should contain the position as well as the distance we travel to find that position
     # if the distance is greater than max_step, we do not want to add it to the queue
 
-    # visited stores each visited position with its shortest path distance
     init_pos = state['player'] if state['is_player_turn'] else state['adversary']
     include_adversary = include_adversary if state['is_player_turn'] else False
     include_player = include_player if not state['is_player_turn'] else False
@@ -448,16 +415,10 @@ def get_move_from_state(old_state, new_state):
     new_p_x = new_player_pos[0]
     new_p_y = new_player_pos[1]
 
-    # print(f'old player pos: {old_player_pos}')
-    # print(f'new player pos: {new_player_pos}')
-
 
     for i in range(4):
         old_wall = old_board[old_p_x][old_p_y][i]
         new_wall = new_board[new_p_x][new_p_y][i]
-        # print(f'i: {i}')
-        # print(f'old wall: {old_wall}')
-        # print(f'new wall: {new_wall}')
         if old_wall != new_wall:
             return (new_player_pos, i)
   
