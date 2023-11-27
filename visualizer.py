@@ -28,8 +28,13 @@ if __name__ == "__main__":
     scores = utils.score(state)
     p0_score = scores[0]
     p1_score = scores[1]
+    player_territory, adversary_territory = utils.simple_territory_search(state)
+    
     print("p0_score: ", p0_score)
     print("p1_score: ", p1_score)
+
+    print("player_territory: ", len(player_territory))
+    print("adversary_territory: ", len(adversary_territory))
     # print(is_terminal_state)
     # print(explored)
 
@@ -40,8 +45,8 @@ if __name__ == "__main__":
       ui_engine.render(world_1.chess_board,
                         tuple(player),
                         tuple(adversary),
-                        valid_moves_p0=moves_p0,
-                        valid_moves_p1=moves_p1
+                        valid_moves_p0=player_territory,
+                        valid_moves_p1=adversary_territory
       )
       # check for a keyboard interrupt of if the window is closed
       try:

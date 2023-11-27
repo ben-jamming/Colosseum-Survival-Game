@@ -138,6 +138,54 @@ def count_closest_cells(adversary_distances, player_distances):
 
     return closest_cells
 
+def simple_territory_search(state):
+    """
+    Do a bfs from both the player and the adversary and get their distance to every square
+    in the players reachable positions 
+    compare them against the adversary's distance to the same square
+    if the player is closer, then the player controls that square
+    if the adversary is closer, then the adversary controls that square
+
+    """
+    player_dists = get_possible_positions(state, depth_limited=False)
+    state = state.copy()
+    state['is_player_turn'] = not state['is_player_turn']
+    adversary_dists = get_possible_positions(state, depth_limited=False)
+
+
+
+    player_territory = {}
+    adversary_territory = {}
+    # go through the union of the keys of both dicts
+    positions = set(player_dists.keys()).union(set(adversary_dists.keys()))
+
+    for position in positions:
+        # go through each position
+        # if only the player can reach it, then the player controls it
+        # if only the adversary can reach it, then the adversary controls it
+        # if both can reach it, then we need to compare the distances
+        # if the distance is equal, then they both control it
+        if position not in player_dists:
+            adversary_territory[position] = adversary_dists[position]
+            continue
+        if position not in adversary_dists:
+            player_territory[position] = player_dists[position]
+            continue
+        if player_dists[position] < adversary_dists[position]:
+            player_territory[position] = player_dists[position]
+        elif adversary_dists[position] < player_dists[position]:
+            adversary_territory[position] = adversary_dists[position]
+        else:
+            player_territory[position] = player_dists[position]
+            adversary_territory[position] = adversary_dists[position]
+    
+    
+    return player_territory, adversary_territory
+
+
+
+
+
 
 def dual_bfs_for_territory_search(state):
     """
@@ -193,7 +241,7 @@ def dual_bfs_for_territory_search(state):
             adversary_territory += 1
 
     # Utility is the difference in territory controlled by the player and the adversary
-    return player_territory - adversary_territory
+    return player_territory, adversary_territory
 
 def utility(state):
     """
@@ -219,7 +267,11 @@ def utility(state):
     # New idea for implementation:
     # - use a dual BFS to determine territory control
     # - the utility is the difference in territory controlled by the player and the adversary
-    return dual_bfs_for_territory_search(state)
+
+    # player_territory, adversary_territory = dual_bfs_for_territory_search(state)
+    # return player_territory - adversary_territory
+    p_t, a_t = simple_territory_search(state)
+    return len(p_t) - len(a_t)
 
 # def find_reachable_positions(board, agent):
 #     """
@@ -343,3 +395,25 @@ def get_possible_moves(state):
                 continue
             possible_moves.append((position, i))
     return possible_moves
+
+def generate_children(state):
+    """
+    This generates the children of a given state
+    A child is a tuple of (board, player, adversary, max_step, is_player_turn)
+    """
+    if is_terminal(state):
+        return []
+    children = []
+    possible_moves = get_possible_moves(state)
+    for move in possible_moves:
+        (position, wall) = move
+        new_state = state.copy()
+        x = position[0]
+        y = position[1]
+        new_state['board'][x][y][wall] = True
+        new_state['is_player_turn'] = not new_state['is_player_turn']
+        if new_state['is_player_turn']:
+            new_state['player'] = position
+        else:
+            new_state['adversary'] = position
+    return children
