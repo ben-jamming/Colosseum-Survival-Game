@@ -213,7 +213,33 @@ def utility(state):
     # - the utility is the difference in territory controlled by the player and the adversary
     return dual_bfs_for_territory_search(state)
 
-def score(board, player, adversary):
+def find_reachable_positions(board, agent):
+    """
+    Helper function for the score function.
+    Find all positions reachable by the given agent within their section
+    """
+
+    # Initialize the queue with the agent's position
+    queue = deque([agent])
+    # Set to keep track of visited positions to avoid re-visiting
+    visited = set()
+    # Set to keep track of reachable positions
+    reachable = set()
+
+    # Continue BFS as long as there are positions to process in the queue
+    while queue:
+        current = queue.popleft()
+        if current not in visited:  # Ensure each cell is processed only once
+            visited.add(current)
+            # Add all reachable positions from the current position to the queue
+            for neighbor in get_adjacent_moves(current, board):
+                if neighbor not in visited:
+                    queue.append(neighbor)
+                    reachable.add(neighbor)
+
+    return len(reachable)
+
+def score(board: ndarray, player: tuple, adversary: tuple)-> (float, float) :
     """
     Once we know the game is over, we need to determine the score of each player
     The score is given by the number of cells that the player can reach in their section
@@ -225,29 +251,10 @@ def score(board, player, adversary):
 
     We then can do the same for the adversary's section.
     """
-    pass
-
-
-# dir_map = {
-#             "u": 0,
-#             "r": 1,
-#             "d": 2,
-#             "l": 3,
-#         }
-
-        
-        
-            
-
-"""
-We will define a state to be a dictionary with the following keys
-- board
-    - this is an mxmx4 grid, where m is the board size, and there are 4 wall positions
-- player
-- adversary
-- max_step
-- is_player_turn
-"""
+    player_score = find_reachable_positions(board, player)
+    adversary_score = find_reachable_positions(board, adversary)
+    return player_score, adversary_score
+    
 
 def get_possible_positions(state):
     """
