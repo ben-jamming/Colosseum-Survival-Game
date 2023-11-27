@@ -2,6 +2,7 @@ import heapq
 import numpy as np
 from numpy import ndarray
 from collections import deque
+from copy import deepcopy
 
 def h(current, adversary):
     # Manhattan distance
@@ -148,7 +149,7 @@ def simple_territory_search(state):
 
     """
     player_dists = get_possible_positions(state, depth_limited=False)
-    state = state.copy()
+    state = deepcopy(state)
     state['is_player_turn'] = not state['is_player_turn']
     adversary_dists = get_possible_positions(state, depth_limited=False)
 
@@ -271,7 +272,12 @@ def utility(state):
     # player_territory, adversary_territory = dual_bfs_for_territory_search(state)
     # return player_territory - adversary_territory
     p_t, a_t = simple_territory_search(state)
-    return len(p_t) - len(a_t)
+    if state['is_player_turn']:
+        return len(p_t)
+    else:
+        return -len(a_t)
+
+    return len(p_t) # - len(a_t) / (len(p_t) + len(a_t))
 
 # def find_reachable_positions(board, agent):
 #     """
@@ -311,7 +317,7 @@ def score(state)-> (float, float) :
 
     We then can do the same for the adversary's section.
     """
-    state = state.copy()
+    state = deepcopy(state)
     state['is_player_turn'] = True
     player_score = len(get_possible_positions(state, depth_limited=False, include_adversary=False))
     state['is_player_turn'] = False
@@ -362,7 +368,7 @@ def get_possible_positions(state,
 
     while (len(queue) > 0):
         u = queue.pop(0)
-        if distances[u] >= state['max_step'] and depth_limited:
+        if distances[u] >= state['max_step'] - 1 and depth_limited:
             continue
         for v in get_adjacent_moves(u, state, 
                                     include_adversary=include_adversary,
@@ -382,7 +388,7 @@ def get_possible_moves(state):
     each placeable wall counts as a different move
     A move is a tuple of (position, wall)
     """
-    if is_terminal(state['board'], state['player'], state['adversary']):
+    if is_terminal(state):
         return []
     
     possible_positions = get_possible_positions(state)
@@ -401,19 +407,65 @@ def generate_children(state):
     This generates the children of a given state
     A child is a tuple of (board, player, adversary, max_step, is_player_turn)
     """
-    if is_terminal(state):
+    opposites = {0: 2, 1: 3, 2: 0, 3: 1}
+    moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
+    terminal = is_terminal(state)
+    if terminal:
         return []
     children = []
     possible_moves = get_possible_moves(state)
     for move in possible_moves:
         (position, wall) = move
-        new_state = state.copy()
+        new_state = deepcopy(state)
         x = position[0]
         y = position[1]
         new_state['board'][x][y][wall] = True
-        new_state['is_player_turn'] = not new_state['is_player_turn']
+        move = moves[wall]
+        anti_x, anti_y = (x + move[0], y + move[1])
+        new_state['board'][anti_x][anti_y][opposites[wall]] = True
         if new_state['is_player_turn']:
             new_state['player'] = position
         else:
             new_state['adversary'] = position
+        new_state['is_player_turn'] = not new_state['is_player_turn']
+        children.append(new_state)
     return children
+
+def get_move_from_state(old_state, new_state):
+    """
+    compares the old state with the new state
+    either the adversary or the player has moved
+    we can easily check that
+    Then we can compare the walls to see which wall was placed
+    returns a tuple of ((x, y), wall)
+    """
+    old_board = old_state['board']
+    new_board = new_state['board']
+    old_player_pos = old_state['player']
+    new_player_pos = new_state['player']
+    old_p_x = old_player_pos[0]
+    old_p_y = old_player_pos[1]
+    new_p_x = new_player_pos[0]
+    new_p_y = new_player_pos[1]
+
+    # print(f'old player pos: {old_player_pos}')
+    # print(f'new player pos: {new_player_pos}')
+
+
+    for i in range(4):
+        old_wall = old_board[old_p_x][old_p_y][i]
+        new_wall = new_board[new_p_x][new_p_y][i]
+        # print(f'i: {i}')
+        # print(f'old wall: {old_wall}')
+        # print(f'new wall: {new_wall}')
+        if old_wall != new_wall:
+            return (new_player_pos, i)
+  
+    # reutrn one of the one of the walls that is not yet placed
+    print("PLACING A RANDOM WALL")
+    for i in range(4):
+        if not new_board[new_p_x][new_p_y][i]:
+            return (new_player_pos, i)
+    
+
+        
