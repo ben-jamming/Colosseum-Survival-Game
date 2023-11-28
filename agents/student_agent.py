@@ -1,6 +1,7 @@
 # Student agent: Add your own agent here
 from math import inf
 from agents.agent import Agent
+from agents.mcts import MCTS
 from store import register_agent
 import sys
 import numpy as np
@@ -58,18 +59,29 @@ class StudentAgent(Agent):
         }
 
 
-        new_action = AlphaBeta.get_action(
+        # new_action = AlphaBeta.get_action(
+        #     generate_children,
+        #     utility,
+        #     state,
+        #     max_depth=2
+        # )
+
+        new_action = MCTS.get_next_move(
             generate_children,
             utility,
             state,
-            max_depth=2
+            max_depth=2,
+            simulation_depth=2,
+            time_limit=1,
+            memory_limit=500,
+            iterations=1000,
         )
 
         # print(new_state)
 
         time_taken = time.time() - start_time
         
-        print("My AI's turn took ", time_taken, "seconds.")
+        print("My MCTS AI's turn took ", time_taken, "seconds.")
 
 
         return new_action

@@ -11,7 +11,7 @@ class Tournament:
             cls._instance = super(Tournament, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, players, runs_per_match=1, display_results=False):
+    def __init__(self, players, runs_per_match=5, display_results=False):
         self.players = players
         self.runs_per_match = runs_per_match
         self.display_results = display_results
@@ -25,9 +25,6 @@ class Tournament:
     def _run_simulation(self, player1, player2):
         """Initiates a set of games between two players."""
         # clear the results file ny deleting it
-        result_csv_file = "simulator_results.csv"
-        if os.path.exists(result_csv_file):
-            os.remove(result_csv_file)
         command = [
             'python3', 'simulator.py', 
             '--player_1', player1, '--player_2', player2, 
@@ -36,6 +33,6 @@ class Tournament:
         subprocess.run(command)  # No need to capture output
 
 if __name__ == "__main__":
-    players = ['random_agent', "student_agent2", "student_agent3", "student_agent4", "student_agent5"]
+    players = ['random_agent', "student_agent", "alpha_agent", "student_agent5"]
     tournament = Tournament(players, display_results=True)
     tournament.run()
