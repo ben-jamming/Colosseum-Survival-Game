@@ -1,21 +1,40 @@
 import time
 import math
+from turtle import undo
 import numpy as np
 import random
+from agents.utils import perform_action, undo_last_action_mcts
+from utils import *
 
 def uct(node):
     return node.wins / node.visits + 2 * math.sqrt(math.log(node.parent.visits) / node.visits)
 
 def random_child_expansion_policy(node):
-  return node.unvisited_children_states.pop(random.randrange(len(node.unvisited_children_states)))
+  # Return a new move
+  return node.unvisited_children_moves.pop(random.randrange(len(node.unvisited_children_moves)))
 
 def random_simulation(state, generate_children, utility, simulation_depth):
+  # Randomly simulate a bunch of games from the current expanded state
+  # Assume that we are in the newly expanded node
+  # Run the simulations on that node and its children up to the depth limit
+  # Evaluate the utility of that state
+  # Undo the simulated moves and restore the prior state
   children = generate_children(state)
+  perform_action(state, move)
+  moves_simulated = []
   while simulation_depth > 0 and children != []:
-    state = random.choice(children)
+    move = random.choice(children)
+    moves_simulated.append(move)
     children = generate_children(state)
+    perform_action(state, move)
     simulation_depth -= 1
-  return utility(state)
+  result = utility(state)
+
+  # Revert the state back to what it was prior to the simulations
+  for move in moves_simulated:
+    undo_last_action_mcts(state, move)
+
+  return result
 
 
 class MCTS():
@@ -49,9 +68,6 @@ class MCTS():
               - the nodes we need to update are the nodes that were visited during selection
               - update the value of the nodes by adding the result of the simulation to the value of the node
               - update the number of visits of the nodes by adding 1 to the number of visits of the node
-
-
-  
   """
 
   def get_next_move(
@@ -69,7 +85,7 @@ class MCTS():
     
     """
     Function conditions:
-    - generate_children: should return an empty list if the state is terminal
+    - generate_children: should return a list of possible actions that can be taken from the current state
     - utilility: should return a value between -1 and 1, the utility function, 
         should be different for final game state and intermediate game states
         in the final game state, we want to return 1 if we won, -1 if we lost, and note use the heuristic
@@ -81,17 +97,16 @@ class MCTS():
     
       #===========================================================================
     class Node():
-      def __init__(self, state, parent=None):
+      def __init__(self, parent=None, parent_move = None):
         self.parent = parent
-        self.children = []
+        self.parent_move = parent_move # The move that led to this node
+        self.children = [] # child nodes
         self.wins = 0
         self.visits = 0
-        self.unvisited_children_states = generate_children(state)
-        self.state = state
+        self.unvisited_children_moves = [] # Populated when the node is expanded
       
       def is_terminal_node(self):
-        return len(self.unvisited_children) + len(self.children) == 0
-        
+        return len(self.unvisited_children_moves) + len(self.children) == 0
 
       def update(self, result):
         self.wins += result
@@ -100,60 +115,72 @@ class MCTS():
       def select_traversal_child(self):
         # if the node is the last node or if it has unvisited children, return None
         return self.children[np.argmax(map(uct, self.children))]
-      
-      
-      def add_child(self, child):
-        new_child = Node(child, self)
-        self.children.append(new_child)
-        return new_child
-      #===========================================================================
     
     prev_time = time.time()
-    def resouces_left():
-      nonlocal iterations
-      nonlocal time_limit
-      nonlocal prev_time
-      time_limit -= time.time() - prev_time
-      prev_time = time.time()
-      return iterations > 0 and time_limit > 0
+
+    def resources_left():
+        nonlocal iterations
+        nonlocal time_limit
+        nonlocal prev_time
+        time_limit -= time.time() - prev_time
+        prev_time = time.time()
+        return iterations > 0 and time_limit > 0
+
     
     def selection(node):
       # we want to keep going until we encounter a leaf node, ie a terminal node
       # or, until we encounter a node that has unvisited children
       # so we want keep searching as long as our current not has no unvisited children and is not a terminal node
-      while not node.is_terminal_node() and node.unvisited_children_states == []:
+      while not node.is_terminal_node() and node.unvisited_children_moves == []:
         node = node.select_traversal_child()
       return node
 
-    def expansion(node):
-      if node.unvisited_children_states == []:
-        return
+    def expansion(node: Node):
+      if node.unvisited_children_moves == []:
+        node.unvisited_children_moves = generate_children(state)
+      
       # choose a child to expand
       # the expansion policy is responsible for removing the child from the list of unvisited children
-      new_child = node.add_child( child_expansion_policy(node) )
-      return new_child
+      move = child_expansion_policy(node)
+      perform_action(state, move)
+      new_child_node = Node(node, move)
+      node.children.append(new_child_node)
+      node.unvisited_children_moves.remove(move)
+      return new_child_node
 
     def backpropagation(node, result):
+      # Were we supposed to also apply a move here?
       while node != None:
         node.update(result)
         node = node.parent
       return node
     
     def mcts(root):
+      nonlocal iterations
       
       node = root
       
-      while resouces_left():
+      while resources_left():
         iterations -= 1
-        
+        # Select a new node from the current nodes children
+        # Move to the selected node 
+        # Expand the node according to the expansion policy
+        # Run the simulations up to the specified depth and backpropagate
+        # Restore the state to the expanded node
         node = selection(node)
+        if node.parent_move:
+            perform_action(state, node.parent_move)
+
         new_child_node = expansion(node)
-        result = simulation_policy(new_child_node.state, generate_children, utility, simulation_depth)
+        result = simulation_policy(state, generate_children, utility, simulation_depth)
+        if new_child_node.parent_move:
+            undo_last_action_mcts(state, new_child_node.parent_move)
+
         node = backpropagation(node, result)
       
-      return root.select_traversal_child().state
+      return root.select_traversal_child().parent_move
 
-    root = Node(state, None, generate_children(state))
+    root = Node()
     return mcts(root)
 
     

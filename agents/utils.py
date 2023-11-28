@@ -423,6 +423,26 @@ def perform_action(state, action):
     state['is_player_turn'] = not state['is_player_turn']
     state.get('action_history', []).append(action_event)
 
+def undo_last_action_mcts(state, action):
+    """
+    Undoes the last move in the tree
+    The difference between this function and undo_last_action is
+    that we pass in the action directly
+    """
+
+    position, wall = action
+    x, y = position
+    opposites = {0: 2, 1: 3, 2: 0, 3: 1}
+    moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
+
+    # place wall, and opposite wall
+    state['board'][x][y][wall] = False
+    move = moves[wall]
+    anti_x, anti_y = (x + move[0], y + move[1])
+    state['board'][anti_x][anti_y][opposites[wall]] = False
+
+    state['is_player_turn'] = not state['is_player_turn']
+
 def undo_last_action(state):
     """
     undoes the action on the state
