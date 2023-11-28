@@ -9,11 +9,11 @@ from copy import deepcopy
 import math
 
 # import math #MUST ADD THIS TO REQUIREMENTS.TXT!!!
-EXP_PARAM = 2 # this is most important param to tune
+EXP_PARAM = 1 # this is most important param to tune
 TIME_LIMIT = 1.95 # we will have to decrease this to 1.95
 MAX_STEP = 3 # this one doesn't matter, dont tune it, just leave it
 DEFAULT_SIMULATIONS = 1
-GENERATE_CHILDREN = 20 # the smaller this is , the better the performance for some odd reason
+GENERATE_CHILDREN = 10 # the smaller this is , the better the performance for some odd reason
 CHILD_GENERATION_DECAY = 0
 SIMULATION_DECAY = 1 # decay for worth of simulation results
 SIMULATION_CONST = 1

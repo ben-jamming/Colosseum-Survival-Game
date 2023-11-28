@@ -9,7 +9,7 @@ from utils import *
 
 def uct(node):
     uct_value = node.wins / node.visits + 2 * math.sqrt(math.log(node.parent.visits) / node.visits)
-    print(f"Calculating UCT: Wins: {node.wins}, Visits: {node.visits}, Parent Visits: {node.parent.visits}, UCT Value: {uct_value}")
+    #print(f"Calculating UCT: Wins: {node.wins}, Visits: {node.visits}, Parent Visits: {node.parent.visits}, UCT Value: {uct_value}")
     return node.wins / node.visits + 2 * math.sqrt(math.log(node.parent.visits) / node.visits)
 
 def random_child_expansion_policy(node):
@@ -22,7 +22,7 @@ def random_simulation(node, state, generate_children, utility, simulation_depth)
   # Run the simulations on that node and its children up to the depth limit
   # Evaluate the utility of that state
   # Undo the simulated moves and restore the prior state
-  print(f"Starting simulation from node: {node}, Depth: {simulation_depth}")
+  #print(f"Starting simulation from node: {node}, Depth: {simulation_depth}")
   children = generate_children(state)
   perform_action(state, node.parent_move)
   moves_simulated = []
@@ -33,7 +33,7 @@ def random_simulation(node, state, generate_children, utility, simulation_depth)
     perform_action(state, move)
     simulation_depth -= 1
   result = utility(state)
-  print(f"Simulation result: {result}, Moves simulated: {moves_simulated}")
+  #print(f"Simulation result: {result}, Moves simulated: {moves_simulated}")
   # Revert the state back to what it was prior to the simulations
   for move in moves_simulated:
     undo_last_action(state)
@@ -108,7 +108,7 @@ class MCTS():
         self.wins = 0
         self.visits = 0
         self.unvisited_children_moves = [] # Populated when the node is expanded
-        print(f"Created new node: {self.__str__()}")
+        #print(f"Created new node: {self.__str__()}")
       
       def __str__(self) -> str:
         return f"Node: Parent Move: {self.parent_move}, \
@@ -117,13 +117,13 @@ class MCTS():
 
       def is_terminal_node(self):
         terminal = len(self.unvisited_children_moves) + len(self.children) == 0
-        print(f"Node {self} is terminal(?): {terminal}")
+        #print(f"Node {self} is terminal(?): {terminal}")
         return len(self.unvisited_children_moves) + len(self.children) == 0
 
       def update(self, result):
         self.wins += result
         self.visits += 1
-        print(f"Updating node {self}: Wins: {self.wins}, Visits: {self.visits}")
+        #print(f"Updating node {self}: Wins: {self.wins}, Visits: {self.visits}")
       
       def select_traversal_child(self):
         # if the node is the last node or if it has unvisited children, return None
@@ -145,12 +145,12 @@ class MCTS():
       # or, until we encounter a node that has unvisited children
       # so we want keep searching as long as our current not has no unvisited children and is not a terminal node
       # We need a special case for the root because otherwise the loop will never enter since its technically terminal
-      print(f"The current node is {node.__str__()} and we need it to pick one of it's children")
-      try:
-         print(node.unvisited_children_moves)
+      #print(f"The current node is {node.__str__()} and we need it to pick one of it's children")
+      # try:
+      #    print(node.unvisited_children_moves)
 
-      except AttributeError:
-          print(f"Node {node.__str__()} has no unvisited children")
+      # except AttributeError:
+      #     print(f"Node {node.__str__()} has no unvisited children")
          
       if node.parent is None:  # This is the root node
           if not node.unvisited_children_moves:
@@ -162,11 +162,11 @@ class MCTS():
           next_node = node.select_traversal_child()
           if next_node is None:
               # If no valid child is found (shouldn't happen normally), handle it here
-              print("Warning: No valid child to select.")
+              #print("Warning: No valid child to select.")
               return None
           node = next_node
 
-      print(f"Selected a new node: {node}")
+      #print(f"Selected a new node: {node}")
       return node
 
     def expansion(node: Node):
@@ -188,9 +188,9 @@ class MCTS():
       # Were we supposed to also apply a move here?
       while node.parent != None and node != None:
         node.update(result)
-        print(f"Backpropagating {result} from {node} to parent {node.parent}")
+        #print(f"Backpropagating {result} from {node} to parent {node.parent}")
         node = node.parent
-      print(f"Node to return is {node.__str__()}")
+      #print(f"Node to return is {node.__str__()}")
       return node
     
     def mcts(root):
@@ -207,13 +207,13 @@ class MCTS():
         # Restore the state to the expanded node
         new_node = selection(node)
         if new_node.parent_move:
-            print(f"Move to the selected node")
+            #print(f"Move to the selected node")
             perform_action(state, new_node.parent_move)
             
         new_child_node = expansion(new_node)
         result = simulation_policy(new_child_node, state, generate_children, utility, simulation_depth)
         if new_child_node.parent_move:
-            print(f"Revert last action")
+            #print(f"Revert last action")
             undo_last_action(state)
 
         node = backpropagation(new_node, result)

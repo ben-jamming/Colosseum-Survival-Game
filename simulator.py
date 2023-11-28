@@ -111,6 +111,7 @@ class Simulator:
                 p0_avg_score = 0
                 p1_avg_score = 0
                 for i in tqdm(range(self.args.autoplay_runs)):
+                    print(f"===================Match #{i}===================")
                     swap_players = i % 2 == 0
                     board_size = np.random.randint(self.args.board_size_min, self.args.board_size_max)
                     p0_score, p1_score, p0_time, p1_time = self.run(
