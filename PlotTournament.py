@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import csv
 
 class TournamentVisualizer:
     _instance = None
@@ -15,6 +16,55 @@ class TournamentVisualizer:
         if TournamentVisualizer._instance is None:
             TournamentVisualizer._instance = TournamentVisualizer()
         return TournamentVisualizer._instance
+
+    @staticmethod
+    def plot_average_turn_time(file_paths):
+        data_frames = []
+
+        for file_path in file_paths:
+            df = pd.read_csv(file_path)
+            # Ensure that turn number is correctly labeled and is the same in all files
+            df.rename(columns={df.columns[0]: 'Turn Number'}, inplace=True)
+            data_frames.append(df)
+
+        # Combine all data frames
+        combined_df = pd.concat(data_frames)
+
+        # Calculate the average turn time for each turn number
+        avg_turn_times = combined_df.groupby('Turn Number').mean().reset_index()
+
+        # Plotting
+        sns.set(style="whitegrid")
+        plt.figure(figsize=(12, 6))
+        sns.lineplot(data=avg_turn_times, x='Turn Number', y='Turn Time', marker='o', linewidth=2.5, markersize=10)
+        
+        plt.title("Average Turn Time per Turn", fontsize=20)
+        plt.xlabel("Turn Number", fontsize=16)
+        plt.ylabel("Average Turn Time (seconds)", fontsize=16)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.grid(True)
+        plt.show()
+
+    @staticmethod
+    def plot_turn_data(file_path):
+        turn_numbers = []
+        turn_times = []
+
+        with open(file_path, 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            next(reader)  # Skip the header
+            for row in reader:
+                turn_numbers.append(int(row[0]))
+                turn_times.append(float(row[1]))
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(turn_numbers, turn_times, marker='o')
+        plt.title("Turn Times per Turn")
+        plt.xlabel("Turn Number")
+        plt.ylabel("Turn Time (seconds)")
+        plt.grid(True)
+        plt.show()
 
     @staticmethod
     def visualize_score_heatmap(csv_file):
@@ -106,9 +156,11 @@ class TournamentVisualizer:
         plt.ylabel('Player')
         plt.show()
 
-
-# Usage example
-csv_file = 'simulator_results.csv'  # Replace with the path to your CSV file
-TournamentVisualizer.visualize_score_heatmap(csv_file)
-TournamentVisualizer.visualize_total_wins(csv_file)
-TournamentVisualizer.visualize_max_match_duration(csv_file)
+if __name__ == "__main__":
+    # csv_file = 'simulator_results.csv'  # Replace with the path to your CSV file
+    # TournamentVisualizer.visualize_score_heatmap(csv_file)
+    # TournamentVisualizer.visualize_total_wins(csv_file)
+    # TournamentVisualizer.visualize_max_match_duration(csv_file)
+    #TournamentVisualizer.plot_turn_data('game_not_auto_played_A_vsB_turn_data.csv')
+    game_data = [f"turn_data/game_{i}_student_agent_vs_alpha_agent_turn_data.csv" for i in range(10)]
+    TournamentVisualizer.plot_average_turn_time(game_data)

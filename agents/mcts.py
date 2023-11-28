@@ -9,7 +9,7 @@ from utils import *
 
 def uct(node):
     uct_value = node.wins / node.visits + 2 * math.sqrt(math.log(node.parent.visits) / node.visits)
-    #print(f"Calculating UCT: Wins: {node.wins}, Visits: {node.visits}, Parent Visits: {node.parent.visits}, UCT Value: {uct_value}")
+    print(f"Calculating UCT: Wins: {node.wins}, Visits: {node.visits}, Parent Visits: {node.parent.visits}, UCT Value: {uct_value}")
     return node.wins / node.visits + 2 * math.sqrt(math.log(node.parent.visits) / node.visits)
 
 def random_child_expansion_policy(node):
@@ -123,7 +123,7 @@ class MCTS():
       def update(self, result):
         self.wins += result
         self.visits += 1
-        #print(f"Updating node {self}: Wins: {self.wins}, Visits: {self.visits}")
+        print(f"Updating node {self}: Wins: {self.wins}, Visits: {self.visits}")
       
       def select_traversal_child(self):
         # if the node is the last node or if it has unvisited children, return None
@@ -188,7 +188,7 @@ class MCTS():
       # Were we supposed to also apply a move here?
       while node.parent != None and node != None:
         node.update(result)
-        #print(f"Backpropagating {result} from {node} to parent {node.parent}")
+        print(f"Backpropagating {result} from {node} to parent {node.parent}")
         node = node.parent
       #print(f"Node to return is {node.__str__()}")
       return node
