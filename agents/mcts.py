@@ -7,11 +7,14 @@ import random
 from agents.utils import perform_action, undo_last_action
 from utils import *
 
+# C is the exploration factor
+C = 1.414
+
 def uct(node):
     if node.visits == 0 or node.parent.visits == 0:
         return float('inf')
     #print(f"Calculating UCT: Wins: {node.wins}, Visits: {node.visits}, Parent Visits: {node.parent.visits}, UCT Value: {uct_value}")
-    return node.wins / node.visits + 2 *  math.sqrt(math.log(node.parent.visits) / node.visits)
+    return node.wins / node.visits + C *  math.sqrt(math.log(node.parent.visits) / node.visits)
 
 def random_child_expansion_policy(node):
   # Return a new move

@@ -24,7 +24,7 @@ class AlphaBeta:
           child_pos = child[0]
           distance_from_player = np.linalg.norm(np.array(player_pos) - np.array(child_pos))
           distance_to_adv = np.linalg.norm(np.array(child_pos) - np.array(state['adversary']))
-          return distance_from_player * distance_from_player  + distance_to_adv
+          return distance_from_player * distance_to_adv  + distance_from_player
         
         def minimax(cur_state, depth, alpha, beta):
             # if max_player = True, then we are maximizing player
@@ -44,6 +44,8 @@ class AlphaBeta:
             cur_val = float('-inf') if max_player else float('inf')
 
             for child in children:
+                if current_time - start_time > time_limit:
+                    break
                 
                 perform_action(cur_state, child)
                 val = minimax(cur_state, depth + 1, alpha, beta)
@@ -80,7 +82,14 @@ class AlphaBeta:
                 max_val = child_val
                 max_child = child
         
-        if max_val == float('-inf'):
+        def get_utility(move):
+            perform_action(state, move)
+            val = utility(state)
+            undo_last_action(state)
+            return val
+        
+        print(f'chosen action: {max_child}, val: {max_val}, utility: {get_utility(max_child)}')
+        if max_val == -1:
             for child in children:
                 perform_action(state, child)
                 child_val = utility(state)
@@ -90,7 +99,7 @@ class AlphaBeta:
                     max_child = child
 
         perform_action(state, max_child)
-        player_score, adv_score = score(state)
+        # player_score, adv_score = score(state)
         # print(f'chosen action: {max_child}, val: {max_val} scores: p:{player_score}, a:{adv_score})')
         undo_last_action(state)
 

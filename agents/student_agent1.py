@@ -68,9 +68,9 @@ class AlphaAgent(Agent):
             generate_children,
             utility,
             state,
-            max_depth=4,
-            time_limit=0.5,
-            breadth_limit=40
+            max_depth=6,
+            time_limit=1.0,
+            breadth_limit=100
         )
 
         time_taken = time.time() - start_time
