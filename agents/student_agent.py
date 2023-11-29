@@ -1,12 +1,10 @@
 # Student agent: Add your own agent here
-from math import e, inf
 from agents.agent import Agent
 from agents.mcts import MCTS
 from store import register_agent
-import sys
 import numpy as np
-from copy import deepcopy
 import time
+
 
 from .alphabeta import AlphaBeta
 from .utils import utility, generate_children
@@ -18,9 +16,10 @@ class StudentAgent(Agent):
     add any helper functionalities needed for your agent.
     """
 
-    def __init__(self, name="StudentAgent", strategy="MCTS", **kwargs):
+    def __init__(self, name="StudentAgent", strategy="MCTS", dynamic_policy=True, **kwargs):
         super(StudentAgent, self).__init__()
         self.name = name
+        self.dynamic_policy = dynamic_policy
         self.strategy = strategy
         self.kwargs = kwargs
         self.dir_map = {
@@ -56,17 +55,30 @@ class StudentAgent(Agent):
 
         start_time = time.time()
 
+        wall_count = np.sum(chess_board[:,:,3])
+
+        progression = wall_count / (len(chess_board) * len(chess_board[0]))
+
+        if self.dynamic_policy:
+            print("PROGRESSION: ", progression)
+            if progression < 0.15 or progression > 0.4:
+                print("USING AlphaBeta")
+                self.strategy = "AlphaBeta"
+            else:
+                print("USING MCTS")
+                self.strategy = "MCTS"
+
         if self.strategy == "MCTS":
             new_action = MCTS.get_next_move(
                 generate_children,
                 utility,
                 state,
                 max_depth=self.kwargs.get('max_depth',2),
-                simulation_depth=self.kwargs.get('simulation_depth',100),
+                simulation_depth=self.kwargs.get('simulation_depth',300),
                 time_limit=self.kwargs.get('time_limit',1.0),
                 memory_limit=500,
                 iterations=float('inf'),
-                exploration_constant=self.kwargs.get('exploration_constant',1.0)
+                exploration_constant=self.kwargs.get('exploration_constant',0.5)
             )
         elif self.strategy == "AlphaBeta":
             new_action = AlphaBeta.get_action(
@@ -75,7 +87,7 @@ class StudentAgent(Agent):
                 state,
                 self.kwargs.get('max_depth',2),
                 self.kwargs.get('time_limit',1.0),
-                self.kwargs.get('breadth_limit',200),
+                self.kwargs.get('breadth_limit',400),
             )
         elif self.strategy == "Random":
             new_action = generate_children(state)[np.random.randint(len(generate_children(state)))]
