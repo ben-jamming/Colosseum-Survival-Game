@@ -20,7 +20,7 @@ class StudentAgent(Agent):
 
     def __init__(self):
         super(StudentAgent, self).__init__()
-        self.name = "StudentAgent"
+        self.name = "MCTS"
         self.dir_map = {
             "u": 0,
             "r": 1,
@@ -71,10 +71,10 @@ class StudentAgent(Agent):
             utility,
             state,
             max_depth=2,
-            simulation_depth=2,
-            time_limit=1,
+            simulation_depth=100,
+            time_limit=1.0,
             memory_limit=500,
-            iterations=1000,
+            iterations=float('inf'),
         )
 
         # print(new_state)

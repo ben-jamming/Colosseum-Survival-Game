@@ -260,18 +260,21 @@ def utility(state):
     if is_terminal(state):
         player_score, adversary_score = score(state)
         if player_score > adversary_score:
-            return float('inf')
+            return 1
         elif player_score < adversary_score:
-            return float('-inf')
+            return -1
         else:
             # we want a tie ot be bad
             # but we want it to be slight better than a loss
             # use max float minus a couple
-            return float('inf') - 100
+            return -0.99
     p_t, a_t = simple_territory_search(state)
     point_p = len(p_t)
     point_a = len(a_t)
-    return point_p - point_a#-(dist * dist) # * point_p - point_a * point_a
+    if point_p == 0 and point_a == 0:
+        return 0
+    win_priority_scaler = 0.5
+    return ((point_p - point_a) / (point_p + point_a))  * win_priority_scaler
 
 
 def score(state)-> (float, float) :

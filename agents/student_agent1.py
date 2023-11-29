@@ -26,7 +26,7 @@ class AlphaAgent(Agent):
 
     def __init__(self):
         super(AlphaAgent, self).__init__()
-        self.name = "StudentAgent1"
+        self.name = "AlphaBetaAgent"
         self.dir_map = {
             "u": 0,
             "r": 1,
@@ -68,7 +68,9 @@ class AlphaAgent(Agent):
             generate_children,
             utility,
             state,
-            max_depth=2
+            max_depth=6,
+            time_limit=1.0,
+            breadth_limit=100
         )
 
         time_taken = time.time() - start_time
