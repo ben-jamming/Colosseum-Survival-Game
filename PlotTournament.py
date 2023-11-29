@@ -23,6 +23,7 @@ class TournamentVisualizer:
 
         for file_path in file_paths:
             df = pd.read_csv(file_path)
+            df.columns = ['Turn Number','Turn Time']
             # Ensure that turn number is correctly labeled and is the same in all files
             df.rename(columns={df.columns[0]: 'Turn Number'}, inplace=True)
             data_frames.append(df)
@@ -162,5 +163,5 @@ if __name__ == "__main__":
     # TournamentVisualizer.visualize_total_wins(csv_file)
     # TournamentVisualizer.visualize_max_match_duration(csv_file)
     #TournamentVisualizer.plot_turn_data('game_not_auto_played_A_vsB_turn_data.csv')
-    game_data = [f"turn_data/game_{i}_student_agent_vs_alpha_agent_turn_data.csv" for i in range(10)]
+    game_data = [f"turn_data/game_{i}_student_agent_vs_alpha_agent_turn_data.csv" for i in range(12)]
     TournamentVisualizer.plot_average_turn_time(game_data)
