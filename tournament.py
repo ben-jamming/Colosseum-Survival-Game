@@ -91,7 +91,7 @@ class Tournament:
         simulator.autoplay()
 
 if __name__ == "__main__":
-    with open('/Users/Ben/Documents/McGill/U3/COMP 424/Colosseum-Survival-Game/agents/agent_config.json', 'r') as file:
+    with open('agents/agent_configurations.json', 'r') as file:
         config = json.load(file)
         players = [agent['name'] for agent in config['agents']]
         
