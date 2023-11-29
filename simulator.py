@@ -157,8 +157,8 @@ class Simulator:
             p0_avg_score = p1_avg_score / self.args.autoplay_runs
             p_0_max_time = np.round(np.max(p1_times),5)
             p_1_max_time = np.round(np.max(p2_times),5)
-            print([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs])
-            self.queue.put([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs])
+            #print([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs])
+            self.queue.put([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs, board_size])
 
         # logger.info(
         #     f"Player {PLAYER_1_NAME} win percentage: {p1_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p1_times),5)} seconds.")

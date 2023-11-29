@@ -33,7 +33,7 @@ class Tournament:
                     writer.writerow(['p1', 'p2', 
                                     'p1_avg_score', 'p2_avg_score', 
                                     'p1_max_time', 'p2_max_time', 
-                                    'p1_wins', 'p2_wins', 'p1_win_pct', 'p2_win_pct'])                         
+                                    'p1_wins', 'p2_wins', 'p1_win_pct', 'p2_win_pct', 'board_size'])                         
                 while True:
                     result = queue.get()
                     print("Received data from queue:", result)  # New line for debugging
