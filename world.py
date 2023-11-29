@@ -256,9 +256,9 @@ class World:
 
         # Print out each step
         # print(self.turn, next_pos, dir)
-        logger.info(
-            f"Player {self.player_names[self.turn]} moves to {next_pos} facing {self.dir_names[dir]}. Time taken this turn (in seconds): {time_taken}"
-        )
+        # logger.info(
+        #     f"Player {self.player_names[self.turn]} moves to {next_pos} facing {self.dir_names[dir]}. Time taken this turn (in seconds): {time_taken}"
+        # )
         if not self.turn:
             self.p0_pos = next_pos
         else:

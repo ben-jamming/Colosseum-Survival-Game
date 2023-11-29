@@ -78,11 +78,11 @@ class StudentAgent(Agent):
                 self.kwargs.get('breadth_limit',200),
             )
 
-        elif self.strategy == "Random":
-            new_action = get_move_from_state(
-                generate_children,
-                state
-            )
+        # elif self.strategy == "Random":
+        #     new_action = get_move_from_state(
+        #         generate_children,
+        #         state
+        #     )
             
         else:
             raise ValueError("Invalid strategy")
@@ -91,7 +91,7 @@ class StudentAgent(Agent):
 
         time_taken = time.time() - start_time
         
-        print("My MCTS AI's turn took ", time_taken, "seconds.")
+        #print("My MCTS AI's turn took ", time_taken, "seconds.")
 
 
         return new_action

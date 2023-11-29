@@ -105,7 +105,9 @@ class TournamentVisualizer:
         # put oppoenent label on top
         ax.xaxis.tick_top()
         plt.xlabel('Opponent')
+        plt.xticks(rotation=45, ha='left')  # Rotate x-axis labels by 45 degrees
         plt.ylabel('Player')
+        plt.tight_layout()
         plt.show()
 
     @staticmethod
@@ -158,10 +160,10 @@ class TournamentVisualizer:
         plt.show()
 
 if __name__ == "__main__":
-    # csv_file = 'simulator_results.csv'  # Replace with the path to your CSV file
-    # TournamentVisualizer.visualize_score_heatmap(csv_file)
-    # TournamentVisualizer.visualize_total_wins(csv_file)
-    # TournamentVisualizer.visualize_max_match_duration(csv_file)
+    csv_file = 'simulation_results.csv'  # Replace with the path to your CSV file
+    TournamentVisualizer.visualize_score_heatmap(csv_file)
+    TournamentVisualizer.visualize_total_wins(csv_file)
+    TournamentVisualizer.visualize_max_match_duration(csv_file)
     #TournamentVisualizer.plot_turn_data('game_not_auto_played_A_vsB_turn_data.csv')
-    game_data = [f"turn_data/game_{i}_student_agent_vs_alpha_agent_turn_data.csv" for i in range(12)]
-    TournamentVisualizer.plot_average_turn_time(game_data)
+    # game_data = [f"turn_data/game_{i}_student_agent_vs_alpha_agent_turn_data.csv" for i in range(12)]
+    # TournamentVisualizer.plot_average_turn_time(game_data)

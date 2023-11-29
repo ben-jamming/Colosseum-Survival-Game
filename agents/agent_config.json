@@ -1,7 +1,27 @@
 {
     "agents": [
         {
-            "name": "MCTS_Agent",
+            "name": "MCTS_Agent_Big_Sim_Depth",
+            "strategy": "MCTS",
+            "parameters": {
+                "max_depth": 2,
+                "simulation_depth": 500,
+                "time_limit": 1.0,
+                "exploration_constant": 1.0
+            }
+        },
+        {
+            "name": "MCTS_Agent_Big_Depth",
+            "strategy": "MCTS",
+            "parameters": {
+                "max_depth": 5,
+                "simulation_depth": 100,
+                "time_limit": 1.0,
+                "exploration_constant": 1.0
+            }
+        },
+        {
+            "name": "MCTS_Agent_Default",
             "strategy": "MCTS",
             "parameters": {
                 "max_depth": 2,
@@ -11,7 +31,27 @@
             }
         },
         {
-            "name": "AlphaBeta_Agent",
+            "name": "MCTS_Agent_Aggressive_Exploration",
+            "strategy": "MCTS",
+            "parameters": {
+                "max_depth": 2,
+                "simulation_depth": 100,
+                "time_limit": 1.0,
+                "exploration_constant": 4.0
+            }
+        },
+        {
+            "name": "MCTS_Agent_Shy_Bitch",
+            "strategy": "MCTS",
+            "parameters": {
+                "max_depth": 2,
+                "simulation_depth": 100,
+                "time_limit": 1.0,
+                "exploration_constant": 0.5
+            }
+        },
+        {
+            "name": "AlphaBeta_Agent_Default",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
@@ -20,11 +60,22 @@
             }
         },
         {
-            "name": "Random_Agent",
-            "strategy": "Random",
-            "parameters": {}
+            "name": "AlphaBeta_Agent_Big_Depth",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 5,
+                "breadth_limit": 100,
+                "time_limit": 1.0
+            }
+        },
+        {
+            "name": "AlphaBeta_Agent_Big_Breadth",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 500,
+                "time_limit": 1.0
+            }
         }
-        
-        
     ]
 }
