@@ -18,9 +18,11 @@ class StudentAgent(Agent):
     add any helper functionalities needed for your agent.
     """
 
-    def __init__(self):
+    def __init__(self, name="StudentAgent", strategy="MCTS", **kwargs):
         super(StudentAgent, self).__init__()
-        self.name = "MCTS"
+        self.name = name
+        self.strategy = strategy
+        self.kwargs = kwargs
         self.dir_map = {
             "u": 0,
             "r": 1,
@@ -43,12 +45,6 @@ class StudentAgent(Agent):
 
         Please check the sample implementation in agents/random_agent.py or agents/human_agent.py for more details.
         """
-
-        # Some simple code to help you with timing. Consider checking 
-        # time_taken during your search and breaking with the best answer
-        # so far when it nears 2 seconds.
-        start_time = time.time()
-
         state = {
             'board': chess_board,
             'player': my_pos,
@@ -58,24 +54,26 @@ class StudentAgent(Agent):
             'action_history': [],
         }
 
+        start_time = time.time()
 
-        # new_action = AlphaBeta.get_action(
-        #     generate_children,
-        #     utility,
-        #     state,
-        #     max_depth=2
-        # )
-
-        new_action = MCTS.get_next_move(
-            generate_children,
-            utility,
-            state,
-            max_depth=2,
-            simulation_depth=100,
-            time_limit=1.0,
-            memory_limit=500,
-            iterations=float('inf'),
-        )
+        if self.strategy == "MCTS":
+            new_action = MCTS.get_next_move(
+                generate_children,
+                utility,
+                state,
+                max_depth=self.kwargs.get('max_depth',2),
+                simulation_depth=self.kwargs.get('simulation_depth',100),
+                time_limit=self.kwargs.get('time_limit',1.0),
+                memory_limit=500,
+                iterations=float('inf'),
+            )
+        elif self.strategy == "AlphaBeta":
+            new_action = AlphaBeta.get_action(
+                generate_children,
+                utility,
+                state,
+                self.kwargs.get('max_depth',2)
+            )
 
         # print(new_state)
 
