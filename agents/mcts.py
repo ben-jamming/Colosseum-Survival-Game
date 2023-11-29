@@ -1,8 +1,5 @@
 import time
 import math
-from turtle import undo
-from typing import final
-import numpy as np
 import random
 from agents.utils import perform_action, undo_last_action, mcts_get_random_move
 from utils import *
@@ -136,7 +133,7 @@ class MCTS():
       state,
       max_depth,
       simulation_depth,
-      simulation_policy = random_simulation_no_checks,
+      simulation_policy = random_simulation,
       child_expansion_policy = random_child_expansion_policy,
       time_limit = 2,
       memory_limit = 500, # in MB

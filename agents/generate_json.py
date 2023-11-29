@@ -2,11 +2,12 @@ import json
 import itertools
 
 def generate_agent_configs():
-    max_depths = range(2, 7)
+    max_depths = range(2, 3, 1)
     simulation_depths = range(50, 200, 50)
-    time_limits = [1.0]
+    time_limits = [0.3]
     exploration_constants = [0.5, 1.0, 1.5]
-    breadth_limits = range(100, 1051, 100)
+    breadth_limits = range(400, 401, 1)
+    dynamic_policies = [True, False]
     agents = []
 
     # # Generate MCTS agents
@@ -24,20 +25,22 @@ def generate_agent_configs():
     #     })
 
     # Generate AlphaBeta agents
-    for depth, breadth, time_limit in itertools.product(max_depths, breadth_limits, time_limits):
-        agent_name = f"AB_Dpth_{depth}_Brth_{breadth}"
+    for depth, breadth, time_limit, dynamic_policy in itertools.product(max_depths, breadth_limits, time_limits, dynamic_policies):
+        agent_name = f"AB_Dpth_{depth}_Brth_{breadth}_dp{dynamic_policy}"
         agents.append({
             "name": agent_name,
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": depth,
                 "breadth_limit": breadth,
-                "time_limit": time_limit
+                "time_limit": time_limit,
+                "dynamic_policy": dynamic_policy
             }
         })
-
+    import os
     # Write the configurations to a JSON file
-    with open('agent_config.json', 'w') as file:
+    file_path = f'{os.path.dirname(os.path.realpath(__file__))}/agent_configurations.json'
+    with open(file_path, 'w') as file:
         json.dump({"agents": agents}, file, indent=4)
 
 if __name__ == "__main__":

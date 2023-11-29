@@ -10,5 +10,5 @@ from .human_agent import HumanAgent
 from .agent_factory import load_agents_from_config
 
 import os
-config_path = f'{os.path.dirname(os.path.realpath(__file__))}/agent_config.json'
+config_path = f'{os.path.dirname(os.path.realpath(__file__))}/agent_configurations.json'
 load_agents_from_config(config_path)
