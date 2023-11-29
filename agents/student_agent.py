@@ -1,5 +1,5 @@
 # Student agent: Add your own agent here
-from math import inf
+from math import e, inf
 from agents.agent import Agent
 from agents.mcts import MCTS
 from store import register_agent
@@ -66,13 +66,16 @@ class StudentAgent(Agent):
                 time_limit=self.kwargs.get('time_limit',1.0),
                 memory_limit=500,
                 iterations=float('inf'),
+                exploration_constant=self.kwargs.get('exploration_constant',1.0)
             )
         elif self.strategy == "AlphaBeta":
             new_action = AlphaBeta.get_action(
                 generate_children,
                 utility,
                 state,
-                self.kwargs.get('max_depth',2)
+                self.kwargs.get('max_depth',2),
+                self.kwargs.get('time_limit',1.0),
+                self.kwargs.get('breadth_limit',200),
             )
 
         elif self.strategy == "Random":
