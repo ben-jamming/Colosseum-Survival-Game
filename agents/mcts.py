@@ -7,14 +7,51 @@ import random
 from agents.utils import perform_action, undo_last_action
 from utils import *
 
+# C is the exploration factor
+C = 1.414
+
 def uct(node):
-    uct_value = node.wins / node.visits + 2 * math.sqrt(math.log(node.parent.visits) / node.visits)
-    print(f"Calculating UCT: Wins: {node.wins}, Visits: {node.visits}, Parent Visits: {node.parent.visits}, UCT Value: {uct_value}")
-    return node.wins / node.visits + 2 * math.sqrt(math.log(node.parent.visits) / node.visits)
+    if node.visits == 0 or node.parent.visits == 0:
+        return float('inf')
+    #print(f"Calculating UCT: Wins: {node.wins}, Visits: {node.visits}, Parent Visits: {node.parent.visits}, UCT Value: {uct_value}")
+    return node.wins / node.visits + C *  math.sqrt(math.log(node.parent.visits) / node.visits)
 
 def random_child_expansion_policy(node):
   # Return a new move
-  return node.unvisited_children_moves.pop(random.randrange(len(node.unvisited_children_moves)))
+  rand_val =random.randrange(len(node.unvisited_children_moves))
+  return node.unvisited_children_moves.pop(rand_val)
+
+def get_min_max_move(children, utility, state):
+    # get the move with the best utility of its players turn
+    # get the move with teh worst utility of its opponents turn
+    def get_utility(move):
+        perform_action(state, move)
+        utility_score = utility(state)
+        undo_last_action(state)
+        return utility_score
+    # sort the moves by their utility
+    children.sort(key=get_utility)
+    # pick randomly from the top k moves
+    k = 1
+    best_move = random.choice(children[:k])
+    return best_move
+
+def min_max_simulation(node, state, generate_children, utility, simulation_depth):
+    children = generate_children(state)
+    moves_simulated = 0
+    for _ in range(simulation_depth):
+        if len(children) == 0:
+            break
+        # get the move with the best utility of its players turn
+        # get the move with teh worst utility of its opponents turn
+        move = get_min_max_move(children, utility, state)
+        perform_action(state, move)
+        children = generate_children(state)
+        moves_simulated += 1
+    result = utility(state)
+    for _ in range(moves_simulated):
+        undo_last_action(state)
+    return result
 
 def random_simulation(node, state, generate_children, utility, simulation_depth):
   # Randomly simulate a bunch of games from the current expanded state
@@ -24,18 +61,19 @@ def random_simulation(node, state, generate_children, utility, simulation_depth)
   # Undo the simulated moves and restore the prior state
   #print(f"Starting simulation from node: {node}, Depth: {simulation_depth}")
   children = generate_children(state)
-  perform_action(state, node.parent_move)
-  moves_simulated = []
-  while simulation_depth > 0 and children != []:
+  moves_simulated = 0
+  for _ in range(simulation_depth):
+    if len(children) == 0:
+      break
     move = random.choice(children)
-    moves_simulated.append(move)
-    children = generate_children(state)
     perform_action(state, move)
-    simulation_depth -= 1
+    children = generate_children(state)
+    moves_simulated += 1
+
   result = utility(state)
   #print(f"Simulation result: {result}, Moves simulated: {moves_simulated}")
   # Revert the state back to what it was prior to the simulations
-  for move in moves_simulated:
+  for _ in range(moves_simulated):
     undo_last_action(state)
 
   return result
@@ -107,7 +145,7 @@ class MCTS():
         self.children = [] # child nodes
         self.wins = 0
         self.visits = 0
-        self.unvisited_children_moves = [] # Populated when the node is expanded
+        self.unvisited_children_moves = generate_children(state)
         #print(f"Created new node: {self.__str__()}")
       
       def __str__(self) -> str:
@@ -116,9 +154,13 @@ class MCTS():
             Visits: {self.visits}"
 
       def is_terminal_node(self):
-        terminal = len(self.unvisited_children_moves) + len(self.children) == 0
-        #print(f"Node {self} is terminal(?): {terminal}")
-        return len(self.unvisited_children_moves) + len(self.children) == 0
+        return len(self.children) == 0 and len(self.unvisited_children_moves) == 0
+      
+      def is_leaf_node(self):
+        return len(self.children) == 0
+      
+      def is_fully_expanded(self):
+        return len(self.unvisited_children_moves) == 0
 
       def update(self, result):
         self.wins += result
@@ -127,7 +169,15 @@ class MCTS():
       
       def select_traversal_child(self):
         # if the node is the last node or if it has unvisited children, return None
-        return self.children[np.argmax(map(uct, self.children))]
+        # pick child with best uct value
+        chosen_child = self.children[0]
+        max_uct = uct(chosen_child)
+        for child in self.children:
+          child_uct = uct(child)
+          if child_uct > max_uct:
+            max_uct = child_uct
+            chosen_child = child
+        return chosen_child
     
     prev_time = time.time()
 
@@ -152,31 +202,32 @@ class MCTS():
       # except AttributeError:
       #     print(f"Node {node.__str__()} has no unvisited children")
          
-      if node.parent is None:  # This is the root node
-          if not node.unvisited_children_moves:
-              node.unvisited_children_moves = generate_children(state)  # Initialize moves for root
-          return node
+      # if node.parent is None:  # This is the root node
+      #     if not node.unvisited_children_moves:
+      #         node.unvisited_children_moves = generate_children(state)  # Initialize moves for root
+      #     return node
 
       # Normal selection process for non-root nodes
-      while not node.is_terminal_node():
-          next_node = node.select_traversal_child()
-          if next_node is None:
-              # If no valid child is found (shouldn't happen normally), handle it here
-              #print("Warning: No valid child to select.")
-              return None
-          node = next_node
 
+      # print node.unvisited_children_moves
+
+      while not node.is_leaf_node():
+          if not node.is_fully_expanded():
+              return node
+          
+          next_node = node.select_traversal_child()
+          perform_action(state, next_node.parent_move)
+          node = next_node
       #print(f"Selected a new node: {node}")
       return node
 
     def expansion(node: Node):
-      if node.unvisited_children_moves == []:
-        node.unvisited_children_moves = generate_children(state)
-      
       # choose a move to a child node to expand
       # the expansion policy is responsible for removing the child from the list of unvisited children
       # when we pick this new move, we want to update the game state to reflect it
       # we then create the child node associated with this node
+      if node.is_fully_expanded():
+        return node
 
       move = child_expansion_policy(node)
       perform_action(state, move)
@@ -186,10 +237,13 @@ class MCTS():
 
     def backpropagation(node, result):
       # Were we supposed to also apply a move here?
-      while node.parent != None and node != None:
-        node.update(result)
-        print(f"Backpropagating {result} from {node} to parent {node.parent}")
+      node.update(result)
+      while node.parent != None:
+        undo_last_action(state)
         node = node.parent
+        node.update(result)
+
+        # print(f"Selected node: {node.parent_move}, Visits: {node.visits}, Wins: {node.wins}")
       #print(f"Node to return is {node.__str__()}")
       return node
     
@@ -206,19 +260,53 @@ class MCTS():
         # Run the simulations up to the specified depth and backpropagate
         # Restore the state to the expanded node
         new_node = selection(node)
-        if new_node.parent_move:
-            #print(f"Move to the selected node")
-            perform_action(state, new_node.parent_move)
-            
+         #print visits and wins and action
+
+
         new_child_node = expansion(new_node)
         result = simulation_policy(new_child_node, state, generate_children, utility, simulation_depth)
-        if new_child_node.parent_move:
-            #print(f"Revert last action")
-            undo_last_action(state)
-
-        node = backpropagation(new_node, result)
+        node = backpropagation(new_child_node, result)
       
-      return root.select_traversal_child().parent_move
+      #choose the bes
+      for child in root.children:
+         #print visits and wins
+          perform_action(state, child.parent_move)
+          print(f"Child: {child.parent_move}, Visits: {child.visits}, Wins: {child.wins}")
+          undo_last_action(state)
+
+      # go through each child
+      # pick the one with the best weighted score
+      def weighted_score(node):
+
+        return (node.wins / node.visits) * math.log(1 + node.visits)
+      
+      best_child = max(root.children, key=weighted_score)
+
+      # if the best child isnet very good
+      # we should just pick a move with the best utility score
+      # this makes sense because mcts is look far ahead
+      # but it doesnt consider how good the current state is
+      # so it will pick a less simulated move that is technically better
+      # but kills the player
+      def get_utility(node):
+        perform_action(state, node.parent_move)
+        utility_score = utility(state)
+        undo_last_action(state)
+        return utility_score
+      print(f'weighted score of best child: {weighted_score(best_child)}')
+
+
+      # if best_child.wins <= 0 or get_utility(best_child) <= -0.9:
+      #   # print utility scores of each child
+      #   for child in root.children:
+      #     print(f"Child: {child.parent_move}, Utility: {get_utility(child)}")
+      #   best_child = max(root.children, key=get_utility)
+      
+
+      
+
+
+      return best_child.parent_move
 
     root = Node()
     return mcts(root)
