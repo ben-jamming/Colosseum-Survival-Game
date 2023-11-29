@@ -302,10 +302,6 @@ class MCTS():
       #   for child in root.children:
       #     print(f"Child: {child.parent_move}, Utility: {get_utility(child)}")
       #   best_child = max(root.children, key=get_utility)
-      
-
-      
-
 
       return best_child.parent_move
 

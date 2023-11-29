@@ -89,7 +89,7 @@ class AlphaBeta:
             undo_last_action(state)
             return val
         
-        print(f'chosen action: {max_child}, val: {max_val}, utility: {get_utility(max_child)}')
+        #print(f'chosen action: {max_child}, val: {max_val}, utility: {get_utility(max_child)}')
         if max_val == -1:
             for child in children:
                 perform_action(state, child)

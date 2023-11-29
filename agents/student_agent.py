@@ -86,7 +86,7 @@ class StudentAgent(Agent):
 
         time_taken = time.time() - start_time
         
-        print("My MCTS AI's turn took ", time_taken, "seconds.")
+        #print("My MCTS AI's turn took ", time_taken, "seconds.")
 
 
         return new_action

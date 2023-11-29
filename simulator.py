@@ -1,3 +1,4 @@
+import queue
 from world import World, PLAYER_1_NAME, PLAYER_2_NAME
 import argparse
 from utils import all_logging_disabled
@@ -46,8 +47,9 @@ class Simulator:
     args : argparse.Namespace
     """
 
-    def __init__(self, args):
+    def __init__(self, args, queue=None):
         self.args = args
+        self.queue = queue
 
     def reset(self, swap_players=False, board_size=None):
         """
@@ -95,16 +97,15 @@ class Simulator:
         turn_number = 0
         is_end, p0_score, p1_score = self.world.step()
 
-        # Time per turn maybe be off by a very (likely insignficant) amount
         while not is_end:
             start_time = time.time()
             is_end, p0_score, p1_score = self.world.step()
             turn_time = time.time() - start_time
             turn_data.append((turn_number, turn_time))
             turn_number += 1
-        logger.info(
-            f"Run finished. Player {PLAYER_1_NAME}: {p0_score}, Player {PLAYER_2_NAME}: {p1_score}"
-        )
+        # logger.info(
+        #     f"Run finished. Player {PLAYER_1_NAME}: {p0_score}, Player {PLAYER_2_NAME}: {p1_score}"
+        # )
 
         self._write_turn_data_to_csv(game_id, turn_data) # game id is the index of autoplay runs
         return p0_score, p1_score, self.world.p0_time, self.world.p1_time
@@ -122,54 +123,47 @@ class Simulator:
             logger.warning("Since running autoplay mode, display will be disabled")
         self.args.display = False
 
-        with open("simulator_results.csv", 'a', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            if csvfile.tell() == 0:  # Write header if file is empty
-                writer.writerow(['p1', 'p2', 
-                                 'p1_avg_score', 'p2_avg_score', 
-                                 'p1_max_time', 'p2_max_time', 
-                                 'p1_wins', 'p2_wins', 'p1_win_pct', 'p2_win_pct'])
-
-            with all_logging_disabled():
-                p0_avg_score = 0
-                p1_avg_score = 0
-                for i in tqdm(range(self.args.autoplay_runs)):
-                    print(f"===================Match #{i}===================")
-                    swap_players = i % 2 == 0
-                    board_size = np.random.randint(self.args.board_size_min, self.args.board_size_max)
-                    game_id = f"{i}_{self.args.player_1}_vs_{self.args.player_2}"
-                    p0_score, p1_score, p0_time, p1_time = self.run(
-                        game_id=game_id, swap_players=swap_players, board_size=board_size
+        with all_logging_disabled():
+            p0_avg_score = 0
+            p1_avg_score = 0
+            for i in tqdm(range(self.args.autoplay_runs)):
+                print(f"===================Match #{i}===================")
+                swap_players = i % 2 == 0
+                board_size = np.random.randint(self.args.board_size_min, self.args.board_size_max)
+                game_id = f"{i}_{self.args.player_1}_vs_{self.args.player_2}"
+                p0_score, p1_score, p0_time, p1_time = self.run(
+                    game_id=game_id, swap_players=swap_players, board_size=board_size
+                )
+                if swap_players:
+                    p0_score, p1_score, p0_time, p1_time = (
+                        p1_score,
+                        p0_score,
+                        p1_time,
+                        p0_time,
                     )
-                    if swap_players:
-                        p0_score, p1_score, p0_time, p1_time = (
-                            p1_score,
-                            p0_score,
-                            p1_time,
-                            p0_time,
-                        )
-                    if p0_score > p1_score:
-                        p1_win_count += 1
-                    elif p0_score < p1_score:
-                        p2_win_count += 1
-                    else:  # Tie
-                        p1_win_count += 1
-                        p2_win_count += 1
-                    p1_times.extend(p0_time)
-                    p2_times.extend(p1_time)
-                    p0_avg_score += p0_score
-                    p1_avg_score += p1_score
-                    # Append result to CSV
-                p0_avg_score = p0_avg_score / self.args.autoplay_runs
-                p0_avg_score = p1_avg_score / self.args.autoplay_runs
-                p_0_max_time = np.round(np.max(p1_times),5)
-                p_1_max_time = np.round(np.max(p2_times),5)
-                writer.writerow([self.args.player_1, self.args.player_2, p0_score, p1_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs])
+                if p0_score > p1_score:
+                    p1_win_count += 1
+                elif p0_score < p1_score:
+                    p2_win_count += 1
+                else:  # Tie
+                    p1_win_count += 1
+                    p2_win_count += 1
+                p1_times.extend(p0_time)
+                p2_times.extend(p1_time)
+                p0_avg_score += p0_score
+                p1_avg_score += p1_score
+                # Append result to CSV
+            p0_avg_score = p0_avg_score / self.args.autoplay_runs
+            p0_avg_score = p1_avg_score / self.args.autoplay_runs
+            p_0_max_time = np.round(np.max(p1_times),5)
+            p_1_max_time = np.round(np.max(p2_times),5)
+            #print([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs])
+            self.queue.put([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs, board_size])
 
-        logger.info(
-            f"Player {PLAYER_1_NAME} win percentage: {p1_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p1_times),5)} seconds.")
-        logger.info(
-            f"Player {PLAYER_2_NAME} win percentage: {p2_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p2_times),5)} seconds.")
+        # logger.info(
+        #     f"Player {PLAYER_1_NAME} win percentage: {p1_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p1_times),5)} seconds.")
+        # logger.info(
+        #     f"Player {PLAYER_2_NAME} win percentage: {p2_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p2_times),5)} seconds.")
 
 if __name__ == "__main__":
     args = get_args()
