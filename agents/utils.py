@@ -4,6 +4,7 @@ from numpy import ndarray
 from collections import deque
 import random
 from functools import lru_cache
+from .jp_search import find_jump_points
 
 @lru_cache(maxsize=100000)
 def h(current, adversary):
@@ -31,7 +32,11 @@ def get_adjacent_moves(position, state,
             moves.append((nx, ny))
     return moves
 
-def is_terminal(state):
+
+
+    
+
+def is_terminal(state, jump_point_search=False):
     """
     board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
     note that to cells share a wall position if they are adjacent
@@ -43,6 +48,10 @@ def is_terminal(state):
     that the player cannot reach.
     we can do an A* search from the player to the adversary, and if we cannot find a path, then
     we are in a terminal state
+
+    We actually dont need, to do a* , because we dont care about the path
+    we just need to know if there is a path
+    so we can use best first search
     """
     player = state['player']
     adversary = state['adversary']
@@ -51,7 +60,6 @@ def is_terminal(state):
     open_list = []
     heapq.heappush(open_list, (0, player))  # Heap element is a tuple (f_score, node)
     parent_node = {player: None}
-    g_score = {player: 0} # g: cheapest distance from start to node
     explored = set()
 
     while open_list:
@@ -61,43 +69,20 @@ def is_terminal(state):
             continue
 
         explored.add(current)
+        neighbors = get_adjacent_moves(current, state)
 
-        for neighbor in get_adjacent_moves(current, state):
+        for neighbor in neighbors:
+            if neighbor == adversary:
+                return False, explored
             if neighbor in explored:
                 continue
-
-            tentative_cheapest_distance = g_score[current] + 1 
-
-            if neighbor not in g_score or tentative_cheapest_distance < g_score[neighbor]:
-                if neighbor == adversary:
-                    return False
-
-                parent_node[neighbor] = current
-                g_score[neighbor] = tentative_cheapest_distance
-                f_score = tentative_cheapest_distance + h(neighbor, adversary)
-                heapq.heappush(open_list, (f_score, neighbor))
+            
+            parent_node[neighbor] = current
+            heapq.heappush(open_list, ( h(neighbor, adversary), neighbor))
 
     # No path found, it's a terminal state
-    return True
 
-def dijkstra(start, state):
-    """
-    Perform Dijkstra's algorithm to find the shortest path from start to all other reachable nodes.
-    Returns a dict with nodes as keys and the shortest distance from start as values.
-    """
-    distances = {start: 0}
-    open_list = [(0, start)]  # Priority queue
-
-    while open_list:
-        current_distance, current_node = heapq.heappop(open_list)
-
-        for neighbor in get_adjacent_moves(current_node, state):
-            distance = current_distance + 1
-            if neighbor not in distances or distance < distances[neighbor]:
-                distances[neighbor] = distance
-                heapq.heappush(open_list, (distance, neighbor))
-
-    return distances
+    return True, explored
 
 def count_closest_cells(adversary_distances, player_distances):
     """
@@ -159,68 +144,7 @@ def simple_territory_search(state):
             player_territory[position] = player_dists[position]
         elif adversary_dists[position] < player_dists[position]:
             adversary_territory[position] = adversary_dists[position]
-    
-    return player_territory, adversary_territory
 
-
-
-
-
-
-def dual_bfs_for_territory_search(state):
-    """
-    Perform a simultaneous BFS from both the player and the adversary to determine territory control.
-    
-    Args:
-        board (ndarray): The game board.
-        player (tuple): The current position of the player.
-        adversary (tuple): The current position of the adversary.
-        get_possible_moves (function): Function to get possible moves from a position.
-        
-    Returns:
-        int: The net territory controlled by the player minus the territory controlled by the adversary.
-    """
-    player = state['player']
-    adversary = state['adversary']
-    # Initialize queues for BFS, starting from the player and adversary positions
-    player_queue = deque([(player, 0)])  # Queue of tuples (position, distance from start)
-    adversary_queue = deque([(adversary, 0)])
-    
-    # Set to keep track of visited positions to avoid re-visiting
-    visited = set()
-    
-    # Variables to track the amount of territory controlled by player and adversary
-    player_territory, adversary_territory = 0, 0
-
-    # Continue BFS as long as there are positions to process in either queue
-    while player_queue or adversary_queue:
-        # Process the player's queue
-        if player_queue:
-            current_player, player_dist = player_queue.popleft()
-            if current_player not in visited:  # Ensure each cell is processed only once
-                visited.add(current_player)
-                # Add all reachable positions from the current position to the queue
-                for neighbor in get_adjacent_moves(current_player, state, include_adversary=True):
-                    if neighbor not in visited:
-                        player_queue.append((neighbor, player_dist + 1))
-
-        # Process the adversary's queue in a similar manner
-        if adversary_queue:
-            current_adversary, adversary_dist = adversary_queue.popleft()
-            if current_adversary not in visited:
-                visited.add(current_adversary)
-                for neighbor in get_adjacent_moves(current_adversary, state, include_player=True):
-                    if neighbor not in visited:
-                        adversary_queue.append((neighbor, adversary_dist + 1))
-
-        # Check for territory control
-        # The player or adversary with the shorter distance to a cell claims its territory
-        if player_dist < adversary_dist:
-            player_territory += 1
-        elif adversary_dist < player_dist:
-            adversary_territory += 1
-
-    # Utility is the difference in territory controlled by the player and the adversary
     return player_territory, adversary_territory
 
 def utility(state):
@@ -247,18 +171,17 @@ def utility(state):
     # New idea for implementation:
     # - use a dual BFS to determine territory control
     # - the utility is the difference in territory controlled by the player and the adversary
-    if is_terminal(state):
-        player_score, adversary_score = score(state)
+    p_t, a_t = simple_territory_search(state)
+    # if p_t and a_t do not share any keys, then we are in a terminal state
+    if len(set(p_t.keys()).intersection(set(a_t.keys()))) == 0:
+        player_score = len(p_t)
+        adversary_score = len(a_t)
         if player_score > adversary_score:
             return 1
         elif player_score < adversary_score:
             return -1
         else:
-            # we want a tie ot be bad
-            # but we want it to be slight better than a loss
-            # use max float minus a couple
             return -0.99
-    p_t, a_t = simple_territory_search(state)
     point_p = len(p_t)
     point_a = len(a_t)
     if point_p == 0 and point_a == 0:
@@ -322,9 +245,6 @@ def get_possible_positions(state,
     # if the distance is greater than max_step, we do not want to add it to the queue
 
     init_pos = position
-
-
-
     queue = []
     distances = {}
 
@@ -352,8 +272,9 @@ def get_possible_moves(state):
     each placeable wall counts as a different move
     A move is a tuple of (position, wall)
     """
-    if is_terminal(state):
-        return []
+    # terminal, explore = is_terminal(state)
+    # if terminal:
+    #     return []
     if state['is_player_turn']:
         possible_positions = get_possible_positions(state,
                                                     state['player'],
@@ -364,6 +285,7 @@ def get_possible_moves(state):
                                                     state['adversary'],
                                                     obstacles=[state['player']]
                                                     )
+    
     possible_moves = []
     for position in possible_positions:
         x = position[0]
@@ -415,26 +337,6 @@ def perform_action(state, action):
     state['is_player_turn'] = not state['is_player_turn']
     state.get('action_history', []).append(action_event)
 
-def undo_last_action_mcts(state, action):
-    """
-    Undoes the last move in the tree
-    The difference between this function and undo_last_action is
-    that we pass in the action directly
-    """
-
-    position, wall = action
-    x, y = position
-    opposites = {0: 2, 1: 3, 2: 0, 3: 1}
-    moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
-
-    # place wall, and opposite wall
-    state['board'][x][y][wall] = False
-    move = moves[wall]
-    anti_x, anti_y = (x + move[0], y + move[1])
-    state['board'][anti_x][anti_y][opposites[wall]] = False
-
-    state['is_player_turn'] = not state['is_player_turn']
-
 def undo_last_action(state):
     """
     undoes the action on the state
@@ -461,38 +363,153 @@ def undo_last_action(state):
 
     state['is_player_turn'] = not state['is_player_turn']
 
+
+def is_possible_move(state, start_pos, new_pos):
+    """
+    checks if a position is a possible move
+    to do this we perform best first search, but stop if we go above the max_step
+    if we go above the max step we return false and stop the search
+    """
+    # we want to perform a breadth first search from the the player whos turn it is, to get to all reachable positions
+    # that have a manhattan distance of max_step or less
+    # The children of each node are the 4 adjacent positions
+    # except those that are blocked by a wall, or the adversary
+
+    # the queue should contain the position as well as the distance we travel to find that position
+    # if the distance is greater than max_step, we do not want to add it to the queue
+
+    open_list = []
+    heapq.heappush(open_list, (0, start_pos))  # Heap element is a tuple (f_score, node)
+    parent_node = {start_pos: None}
+    explored = set()
+    cost = {start_pos: 0}
+
+    while open_list:
+        # print("2looping")
+        current = heapq.heappop(open_list)[1] # Get the node from the tuple
+
+        if cost[current] > state['max_step']:
+            continue
+        if current in explored:
+            continue
+        if current == new_pos:
+            return True
+        
+        
+        explored.add(current)
+
+
+        neighbors = get_adjacent_moves(current, state)
+        for neighbor in neighbors:
+            if neighbor in explored:
+                continue
+            explored.add(neighbor)
+            parent_node[neighbor] = current
+            cost[neighbor] = cost[current] + 1
+            if cost[neighbor] <= state['max_step']:
+                heapq.heappush(open_list, ( h(neighbor, new_pos), neighbor)) 
+
+    return False
+
+        
     
 
+# def mcts_get_random_move(state):
+#     """
+#     usually we generate the children and then pick one at random
+#     but this is slow and wastes alot of time
+#     instead we can pick a random move in a range around the player/ or adversary
+#     then we do a best first search from that random position to the player
+#     If its not, then we pick a different one
+#     """
+#     player_pos = state['player']
+#     adversary_pos = state['adversary']
+#     turn = state['is_player_turn']
 
-def get_move_from_state(old_state, new_state):
-    """
-    compares the old state with the new state
-    either the adversary or the player has moved
-    we can easily check that
-    Then we can compare the walls to see which wall was placed
-    returns a tuple of ((x, y), wall)
-    """
-    old_board = old_state['board']
-    new_board = new_state['board']
-    old_player_pos = old_state['player']
-    new_player_pos = new_state['player']
-    old_p_x = old_player_pos[0]
-    old_p_y = old_player_pos[1]
-    new_p_x = new_player_pos[0]
-    new_p_y = new_player_pos[1]
+#     pos = player_pos if turn else adversary_pos
+
+#     # max step is the max distance we can move
+#     # so our range is pos - max_step to pos + max_step
+#     attempted_moves = set()
+#     attempts = 0
+#     random_move_found = False
+#     x_bounds = (pos[0] - state['max_step'], pos[0] + state['max_step'])
+#     y_bounds = (pos[1] - state['max_step'], pos[1] + state['max_step'])
+#     # make sure its in bounds of board
+#     board =state['board']
+#     board_len_x = len(board)
+#     board_len_y = len(board[0])
+#     x_bounds = (max(0, x_bounds[0]), min(board_len_x - 1, x_bounds[1]))
+#     y_bounds = (max(0, y_bounds[0]), min(board_len_y - 1, y_bounds[1]))
+
+#     # hash all combination of x and y so that their unique and randomize
+
+#     # then try them in order
 
 
-    for i in range(4):
-        old_wall = old_board[old_p_x][old_p_y][i]
-        new_wall = new_board[new_p_x][new_p_y][i]
-        if old_wall != new_wall:
-            return (new_player_pos, i)
-  
-    # reutrn one of the one of the walls that is not yet placed
-    print("PLACING A RANDOM WALL")
-    for i in range(4):
-        if not new_board[new_p_x][new_p_y][i]:
-            return (new_player_pos, i)
+
+#     while not random_move_found:
+#         attempts += 1
+#         # print("1looping")
+#         x = random.randint( x_bounds[0], x_bounds[1])
+#         y = random.randint( y_bounds[0], y_bounds[1])
+#         random_move = (x, y)
+#         # print(f'board n : {board_len_x * board_len_y}')
+#         # print(f'attempts: {attempts}')
+#         if attempts > board_len_x * board_len_y:
+#             return None
+#         if random_move in attempted_moves:
+#             attempted_moves.add(random_move)
+#             continue
+#         manhattan_distance = abs(x - pos[0]) + abs(y - pos[1])
+#         if manhattan_distance > state['max_step']:
+#             attempted_moves.add(random_move)
+#             continue
+#         for i in range(4):
+#             if not state['board'][x][y][i]: # and is_possible_move(state, pos, random_move):
+#                 random_move_found = True
+#                 move = (random_move, i)
+#                 break
+        
+
+
+#     return move
+# import hashlib
+# def mcts_get_random_move(state):
+#     player_pos = state['player']
+#     adversary_pos = state['adversary']
+#     turn = state['is_player_turn']
+
+#     pos = player_pos if turn else adversary_pos
+#     max_step = state['max_step']
+#     board_len_x = len(state['board'])
+#     board_len_y = len(state['board'][0])
+
+#     # Calculate bounds
+#     x_bounds = (max(0, pos[0] - max_step), min(board_len_x - 1, pos[0] + max_step))
+#     y_bounds = (max(0, pos[1] - max_step), min(board_len_y - 1, pos[1] + max_step))
+
+#     # Total number of possible moves
+#     total_moves = (x_bounds[1] - x_bounds[0] + 1) * (y_bounds[1] - y_bounds[0] + 1)
+#     seed = "fixed_seed"  # Fixed seed for deterministic hashing
+
+#     for i in range(total_moves):
+#         # Generate a hash value
+#         hash_value = int(hashlib.md5(f"{seed}_{i}".encode()).hexdigest(), 16)
+#         x = hash_value % (x_bounds[1] - x_bounds[0] + 1) + x_bounds[0]
+#         y = (hash_value // (x_bounds[1] - x_bounds[0] + 1)) % (y_bounds[1] - y_bounds[0] + 1) + y_bounds[0]
+
+#         random_move = (x, y)
+#         manhattan_distance = abs(x - pos[0]) + abs(y - pos[1])
+
+#         if manhattan_distance <= max_step:
+#             for wall_index in range(4):
+#                 if not state['board'][x][y][wall_index]:  # Check if move is possible
+#                     return (random_move, wall_index)
+
+#     return None  # No valid move found
+    
+
     
 
         
