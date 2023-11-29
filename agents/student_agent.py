@@ -9,7 +9,7 @@ from copy import deepcopy
 import time
 
 from .alphabeta import AlphaBeta
-from .utils import utility, generate_children, get_move_from_state
+from .utils import utility, generate_children
 
 @register_agent("student_agent")
 class StudentAgent(Agent):

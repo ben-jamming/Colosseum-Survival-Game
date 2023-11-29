@@ -4,6 +4,7 @@ from numpy import ndarray
 from collections import deque
 import random
 from functools import lru_cache
+from .jp_search import find_jump_points
 
 @lru_cache(maxsize=100000)
 def h(current, adversary):
@@ -31,7 +32,11 @@ def get_adjacent_moves(position, state,
             moves.append((nx, ny))
     return moves
 
-def is_terminal(state):
+
+
+    
+
+def is_terminal(state, jump_point_search=False):
     """
     board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
     note that to cells share a wall position if they are adjacent
@@ -54,6 +59,8 @@ def is_terminal(state):
     g_score = {player: 0} # g: cheapest distance from start to node
     explored = set()
 
+    looked_at = set()
+
     while open_list:
         current = heapq.heappop(open_list)[1] # Get the node from the tuple
 
@@ -61,8 +68,13 @@ def is_terminal(state):
             continue
 
         explored.add(current)
+        if jump_point_search:
+            neighbors = find_jump_points(state, current)
+        else:
+            neighbors = get_adjacent_moves(current, state)
 
-        for neighbor in get_adjacent_moves(current, state):
+        for neighbor in neighbors:
+            looked_at.add(neighbor)
             if neighbor in explored:
                 continue
 
@@ -70,7 +82,7 @@ def is_terminal(state):
 
             if neighbor not in g_score or tentative_cheapest_distance < g_score[neighbor]:
                 if neighbor == adversary:
-                    return False
+                    return False, looked_at
 
                 parent_node[neighbor] = current
                 g_score[neighbor] = tentative_cheapest_distance
@@ -78,26 +90,10 @@ def is_terminal(state):
                 heapq.heappush(open_list, (f_score, neighbor))
 
     # No path found, it's a terminal state
-    return True
 
-def dijkstra(start, state):
-    """
-    Perform Dijkstra's algorithm to find the shortest path from start to all other reachable nodes.
-    Returns a dict with nodes as keys and the shortest distance from start as values.
-    """
-    distances = {start: 0}
-    open_list = [(0, start)]  # Priority queue
+    # return the explores, plus everythin that entered the open list
 
-    while open_list:
-        current_distance, current_node = heapq.heappop(open_list)
-
-        for neighbor in get_adjacent_moves(current_node, state):
-            distance = current_distance + 1
-            if neighbor not in distances or distance < distances[neighbor]:
-                distances[neighbor] = distance
-                heapq.heappush(open_list, (distance, neighbor))
-
-    return distances
+    return True, looked_at
 
 def count_closest_cells(adversary_distances, player_distances):
     """
@@ -162,67 +158,6 @@ def simple_territory_search(state):
     
     return player_territory, adversary_territory
 
-
-
-
-
-
-def dual_bfs_for_territory_search(state):
-    """
-    Perform a simultaneous BFS from both the player and the adversary to determine territory control.
-    
-    Args:
-        board (ndarray): The game board.
-        player (tuple): The current position of the player.
-        adversary (tuple): The current position of the adversary.
-        get_possible_moves (function): Function to get possible moves from a position.
-        
-    Returns:
-        int: The net territory controlled by the player minus the territory controlled by the adversary.
-    """
-    player = state['player']
-    adversary = state['adversary']
-    # Initialize queues for BFS, starting from the player and adversary positions
-    player_queue = deque([(player, 0)])  # Queue of tuples (position, distance from start)
-    adversary_queue = deque([(adversary, 0)])
-    
-    # Set to keep track of visited positions to avoid re-visiting
-    visited = set()
-    
-    # Variables to track the amount of territory controlled by player and adversary
-    player_territory, adversary_territory = 0, 0
-
-    # Continue BFS as long as there are positions to process in either queue
-    while player_queue or adversary_queue:
-        # Process the player's queue
-        if player_queue:
-            current_player, player_dist = player_queue.popleft()
-            if current_player not in visited:  # Ensure each cell is processed only once
-                visited.add(current_player)
-                # Add all reachable positions from the current position to the queue
-                for neighbor in get_adjacent_moves(current_player, state, include_adversary=True):
-                    if neighbor not in visited:
-                        player_queue.append((neighbor, player_dist + 1))
-
-        # Process the adversary's queue in a similar manner
-        if adversary_queue:
-            current_adversary, adversary_dist = adversary_queue.popleft()
-            if current_adversary not in visited:
-                visited.add(current_adversary)
-                for neighbor in get_adjacent_moves(current_adversary, state, include_player=True):
-                    if neighbor not in visited:
-                        adversary_queue.append((neighbor, adversary_dist + 1))
-
-        # Check for territory control
-        # The player or adversary with the shorter distance to a cell claims its territory
-        if player_dist < adversary_dist:
-            player_territory += 1
-        elif adversary_dist < player_dist:
-            adversary_territory += 1
-
-    # Utility is the difference in territory controlled by the player and the adversary
-    return player_territory, adversary_territory
-
 def utility(state):
     """
     The utility of the board is used to mark how good the board is for the player
@@ -247,7 +182,8 @@ def utility(state):
     # New idea for implementation:
     # - use a dual BFS to determine territory control
     # - the utility is the difference in territory controlled by the player and the adversary
-    if is_terminal(state):
+    terminal, explored = is_terminal(state)
+    if terminal:
         player_score, adversary_score = score(state)
         if player_score > adversary_score:
             return 1
@@ -352,7 +288,8 @@ def get_possible_moves(state):
     each placeable wall counts as a different move
     A move is a tuple of (position, wall)
     """
-    if is_terminal(state):
+    terminal, explore = is_terminal(state)
+    if terminal:
         return []
     if state['is_player_turn']:
         possible_positions = get_possible_positions(state,
@@ -415,26 +352,6 @@ def perform_action(state, action):
     state['is_player_turn'] = not state['is_player_turn']
     state.get('action_history', []).append(action_event)
 
-def undo_last_action_mcts(state, action):
-    """
-    Undoes the last move in the tree
-    The difference between this function and undo_last_action is
-    that we pass in the action directly
-    """
-
-    position, wall = action
-    x, y = position
-    opposites = {0: 2, 1: 3, 2: 0, 3: 1}
-    moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
-
-    # place wall, and opposite wall
-    state['board'][x][y][wall] = False
-    move = moves[wall]
-    anti_x, anti_y = (x + move[0], y + move[1])
-    state['board'][anti_x][anti_y][opposites[wall]] = False
-
-    state['is_player_turn'] = not state['is_player_turn']
-
 def undo_last_action(state):
     """
     undoes the action on the state
@@ -461,38 +378,6 @@ def undo_last_action(state):
 
     state['is_player_turn'] = not state['is_player_turn']
 
-    
-
-
-def get_move_from_state(old_state, new_state):
-    """
-    compares the old state with the new state
-    either the adversary or the player has moved
-    we can easily check that
-    Then we can compare the walls to see which wall was placed
-    returns a tuple of ((x, y), wall)
-    """
-    old_board = old_state['board']
-    new_board = new_state['board']
-    old_player_pos = old_state['player']
-    new_player_pos = new_state['player']
-    old_p_x = old_player_pos[0]
-    old_p_y = old_player_pos[1]
-    new_p_x = new_player_pos[0]
-    new_p_y = new_player_pos[1]
-
-
-    for i in range(4):
-        old_wall = old_board[old_p_x][old_p_y][i]
-        new_wall = new_board[new_p_x][new_p_y][i]
-        if old_wall != new_wall:
-            return (new_player_pos, i)
-  
-    # reutrn one of the one of the walls that is not yet placed
-    print("PLACING A RANDOM WALL")
-    for i in range(4):
-        if not new_board[new_p_x][new_p_y][i]:
-            return (new_player_pos, i)
     
 
         
