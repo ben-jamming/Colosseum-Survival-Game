@@ -13,8 +13,9 @@ def h(current, adversary):
     # rount to 2 decimal places
     return dist
 
-def get_adjacent_moves(position, state,
-                       obstacles=[],
+@lru_cache(maxsize=400)
+def get_adjacent_moves(position, walls,
+                       obstacle=None,
                        ):
     """
     This returns the list of directly adjacent positions to a given position
@@ -25,10 +26,9 @@ def get_adjacent_moves(position, state,
     deltas = [((-1, 0), 0), ((0, 1), 1), ((1, 0), 2), ((0, -1), 3)]
     x = position[0]
     y = position[1]
-    walls = state['board'][x][y]
     for delta, i in deltas:
         nx, ny = x + delta[0], y + delta[1]
-        if not walls[i] and (nx, ny) not in obstacles:
+        if not walls[i] and (nx, ny) != obstacle:
             moves.append((nx, ny))
     return moves
 
@@ -69,7 +69,8 @@ def is_terminal(state, jump_point_search=False):
             continue
 
         explored.add(current)
-        neighbors = get_adjacent_moves(current, state)
+        walls = tuple(state['board'][current[0]][current[1]])
+        neighbors = get_adjacent_moves(current, walls)
 
         for neighbor in neighbors:
             if neighbor == adversary:
@@ -105,7 +106,7 @@ def count_closest_cells(adversary_distances, player_distances):
 
     return closest_cells
 
-def simple_territory_search(state):
+def simple_territory_search(board, player, adversary, max_step):
     """
     Do a bfs from both the player and the adversary and get their distance to every square
     in the players reachable positions 
@@ -114,11 +115,13 @@ def simple_territory_search(state):
     if the adversary is closer, then the adversary controls that square
 
     """
-    player_dists = get_possible_positions(state,
-                                          state['player'],
+    player_dists = get_possible_positions(board,
+                                          max_step,
+                                          player,
                                            depth_limited=False)
-    adversary_dists = get_possible_positions(state,
-                                              state['adversary'],
+    adversary_dists = get_possible_positions(board,
+                                              max_step,
+                                              adversary,
                                               depth_limited=False)
 
 
@@ -172,7 +175,7 @@ def utility(state):
     # New idea for implementation:
     # - use a dual BFS to determine territory control
     # - the utility is the difference in territory controlled by the player and the adversary
-    p_t, a_t, overlap = simple_territory_search(state)
+    p_t, a_t, overlap = simple_territory_search(state['board'], state['player'], state['adversary'], state['max_step'])
     if len(overlap) == 0:
         player_score = len(p_t)
         adversary_score = len(a_t)
@@ -187,36 +190,13 @@ def utility(state):
     if point_p == 0 and point_a == 0:
         return 0
     win_priority_scaler = 0.5
-    return ((point_p - point_a) / (point_p + point_a))  * win_priority_scaler
+    return ((point_p - point_a) / (point_p + point_a))  * win_priority_scaler    
 
-
-def score(state)-> (float, float) :
-    """
-    Once we know the game is over, we need to determine the score of each player
-    The score is given by the number of cells that the player can reach in their section
-    The adversary's score is given by the number of cells that the adversary can reach in their section
-
-    To calculate this we can perform a breadth first search from the player's position to all reachable positions
-    in the player's section. We will use a queue to store the positions we need to visit, and a set to store the
-    positions we have already visited.
-
-    We then can do the same for the adversary's section.
-    """
-
-    player_score = len(get_possible_positions(state,
-                                              state['player'],
-                                              depth_limited=False))
-                                              
-    adversary_score = len(get_possible_positions(state, 
-                                                  state['adversary'],
-                                                 depth_limited=False))
-    return player_score, adversary_score
-    
-
-def get_possible_positions(state,
+def get_possible_positions(board,
+                           max_step,
                            position,
                            depth_limited=True,
-                           obstacles=[]
+                           obstacle=None
                            ):
     """
     board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
@@ -253,10 +233,11 @@ def get_possible_positions(state,
 
     while (len(queue) > 0):
         u = queue.pop(0)
-        if distances[u] >= state['max_step'] - 1 and depth_limited:
+        if distances[u] >= max_step - 1 and depth_limited:
             continue
-        for v in get_adjacent_moves(u, state, 
-                                    obstacles=obstacles,
+        walls = tuple(board[u[0]][u[1]])
+        for v in get_adjacent_moves(u, walls,
+                                    obstacle=obstacle,
                                     ):
             if v not in distances:
                 distances[v] = distances[u] + 1
@@ -275,16 +256,12 @@ def get_possible_moves(state):
     # terminal, explore = is_terminal(state)
     # if terminal:
     #     return []
+    pos = state['adversary']
+    blocker = state['player'] 
     if state['is_player_turn']:
-        possible_positions = get_possible_positions(state,
-                                                    state['player'],
-                                                    obstacles=[state['adversary']]
-                                                    )
-    else:
-        possible_positions = get_possible_positions(state,
-                                                    state['adversary'],
-                                                    obstacles=[state['player']]
-                                                    )
+        pos = state['player'] 
+        blocker = state['adversary'] 
+    possible_positions = get_possible_positions(state['board'],state['max_step'], pos, obstacle=blocker)
     
     possible_moves = []
     for position in possible_positions:
@@ -302,8 +279,6 @@ def generate_children(state):
     An action that mutates the state of the board
     """
     possible_moves = get_possible_moves(state)
-    if len(possible_moves) == 0:
-        return []
     return possible_moves
 
 def perform_action(state, action):
@@ -398,8 +373,8 @@ def is_possible_move(state, start_pos, new_pos):
         
         explored.add(current)
 
-
-        neighbors = get_adjacent_moves(current, state)
+        walls = tuple(state['board'][current[0]][current[1]])
+        neighbors = get_adjacent_moves(current, walls)
         for neighbor in neighbors:
             if neighbor in explored:
                 continue
@@ -411,6 +386,54 @@ def is_possible_move(state, start_pos, new_pos):
 
     return False
 
+
+def mcts_get_random_move(state):
+    """
+    pick a random position within the range of max step, and a random wall 
+    """
+    player_pos = state['player']
+    adversary_pos = state['adversary']
+    turn = state['is_player_turn']
+
+    pos = player_pos if turn else adversary_pos
+
+    # max step is the max distance we can move
+    # so our range is pos - max_step to pos + max_step
+
+    random_move_found = False
+    x_bounds = (pos[0] - state['max_step'], pos[0] + state['max_step'])
+    y_bounds = (pos[1] - state['max_step'], pos[1] + state['max_step'])
+    # if there is wall in the direction of the extended bound, cut it off to just the position
+    for i in range(4):
+        if state['board'][pos[0]][pos[1]][i]:
+            if i == 0:
+                x_bounds = (pos[0], x_bounds[1])
+            elif i == 1:
+                y_bounds = (y_bounds[0], pos[1])
+            elif i == 2:
+                x_bounds = (x_bounds[0], pos[0])
+            elif i == 3:
+                y_bounds = (pos[1], y_bounds[1])
+    # make sure its in bounds of board
+    board =state['board']
+    board_len_x = len(board)
+    board_len_y = len(board[0])
+    x_bounds = (max(0, x_bounds[0]), min(board_len_x - 1, x_bounds[1]))
+    y_bounds = (max(0, y_bounds[0]), min(board_len_y - 1, y_bounds[1]))
+
+
+    random_move_found = True
+    count = 0
+    while not random_move_found:
+        if count > board_len_x * board_len_y:
+            return None
+        move = random.randint(0, len(board) - 1), random.randint(0, len(board[0]) - 1)
+        for i in range(4):
+            if not state['board'][move[0]][move[1]][i]:
+                random_move_found = True
+                return (move, i)
+        count += 1
+        
         
     
 

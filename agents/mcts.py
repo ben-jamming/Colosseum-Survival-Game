@@ -4,7 +4,7 @@ from turtle import undo
 from typing import final
 import numpy as np
 import random
-from agents.utils import perform_action, undo_last_action
+from agents.utils import perform_action, undo_last_action, mcts_get_random_move
 from utils import *
 
 # C is the exploration factor
@@ -52,6 +52,26 @@ def min_max_simulation(node, state, generate_children, utility, simulation_depth
     for _ in range(moves_simulated):
         undo_last_action(state)
     return result
+
+def random_simulation_no_checks(node, state, generate_children, utility, simulation_depth):
+  # Randomly simulate a bunch of games from the current expanded state
+  # Assume that we are in the newly expanded node
+  # Run the simulations on that node and its children up to the depth limit
+  # Evaluate the utility of that state
+  # Undo the simulated moves and restore the prior state
+  moves_simulated = 0
+  for _ in range(simulation_depth):
+    move = mcts_get_random_move(state)
+    if move is None:
+      break
+    perform_action(state, move)
+    moves_simulated += 1
+
+  result = utility(state)
+  for _ in range(moves_simulated):
+    undo_last_action(state)
+
+  return result
 
 def random_simulation(node, state, generate_children, utility, simulation_depth):
   # Randomly simulate a bunch of games from the current expanded state
@@ -116,7 +136,7 @@ class MCTS():
       state,
       max_depth,
       simulation_depth,
-      simulation_policy = random_simulation,
+      simulation_policy = random_simulation_no_checks,
       child_expansion_policy = random_child_expansion_policy,
       time_limit = 2,
       memory_limit = 500, # in MB
