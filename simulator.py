@@ -82,13 +82,13 @@ class Simulator:
         """
         Added a method to save turn data to a csv
         """
-        filename = f"game_{game_id}_turn_data.csv"
+        filename = f"game_turn_data.csv"
         # write turn data into csv in turn_data folder
         with open(f'turn_data/{filename}', 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['turn_number', 'turn_time'])
+            writer.writerow(['turn_number', 'turn_time', 'game_id'])
             for turn in turn_data:
-                writer.writerow([turn[0], turn[1]])
+                writer.writerow([turn[0], turn[1], game_id])
 
 
     def run(self, game_id="not_auto_played", swap_players=False, board_size=None):

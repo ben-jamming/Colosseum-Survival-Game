@@ -8,6 +8,7 @@ from multiprocessing import Process, Manager, Pool
 from numpy import disp
 from simulator import Simulator
 import argparse
+import logging
 
 
 class Tournament:
@@ -18,10 +19,12 @@ class Tournament:
             cls._instance = super(Tournament, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, players, runs_per_match=10, display_results=False):
+    def __init__(self, players, runs_per_match=5, display_results=False):
         self.players = players
         self.runs_per_match = runs_per_match
         self.display_results = display_results
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        self.logger = logging.getLogger(__name__)
 
     @staticmethod
     def writer_process(queue):
@@ -55,9 +58,8 @@ class Tournament:
             queue = manager.Queue()
             writer_proc = Process(target=self.writer_process, args=(queue,))
             writer_proc.start()
-            simulations = [(player1, player2, queue) for player1, player2 in itertools.combinations_with_replacement(self.players, 2)]
+            simulations = [(i, player1, player2, queue) for i, (player1, player2) in enumerate(itertools.combinations_with_replacement(self.players, 2))]
             
-
             # IMPORTANT
             # MAKE THIS WHATEVER THE MAXIMUM NUMBER OF THREADS
             # YOU THINK YOU CAN HANDLE IS
@@ -68,7 +70,7 @@ class Tournament:
             queue.put("DONE")
             writer_proc.join()     
 
-    def _run_simulation(self, player1, player2, queue):
+    def _run_simulation(self, simulation_id, player1, player2, queue):
         """Initiates a set of games between two players."""
         args = argparse.Namespace(
             player_1=player1,
@@ -83,6 +85,7 @@ class Tournament:
             autoplay=True,
             autoplay_runs=self.runs_per_match
         )
+        self.logger.info(f"Starting simulation {simulation_id}: {player1} vs {player2}")
         simulator = Simulator(args, queue)
         simulator.autoplay()
 
