@@ -77,23 +77,8 @@ class StudentAgent(Agent):
                 self.kwargs.get('time_limit',1.0),
                 self.kwargs.get('breadth_limit',200),
             )
-
-
-        new_action = MCTS.get_next_move(
-            generate_children,
-            utility,
-            state,
-            max_depth=2,
-            simulation_depth=50,
-            time_limit=1.0,
-            memory_limit=500,
-            iterations=float('inf'),
-        )
         elif self.strategy == "Random":
-            new_action = get_move_from_state(
-                generate_children,
-                state
-            )
+            new_action = generate_children(state)[np.random.randint(len(generate_children(state)))]
             
         else:
             raise ValueError("Invalid strategy")
