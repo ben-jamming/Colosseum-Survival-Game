@@ -225,14 +225,14 @@ def get_possible_positions(board,
     # if the distance is greater than max_step, we do not want to add it to the queue
 
     init_pos = position
-    queue = []
+    queue = deque()
     distances = {}
 
     distances[init_pos] = 0
     queue.append(init_pos)
 
     while (len(queue) > 0):
-        u = queue.pop(0)
+        u = queue.popleft()
         if distances[u] >= max_step - 1 and depth_limited:
             continue
         walls = tuple(board[u[0]][u[1]])
