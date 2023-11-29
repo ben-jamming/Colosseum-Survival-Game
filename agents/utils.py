@@ -127,6 +127,7 @@ def simple_territory_search(state):
     adversary_territory = {}
     # go through the union of the keys of both dicts
     positions = set(player_dists.keys()).union(set(adversary_dists.keys()))
+    overlap = set(player_dists.keys()).intersection(set(adversary_dists.keys()))
 
     for position in positions:
         # go through each position
@@ -145,7 +146,7 @@ def simple_territory_search(state):
         elif adversary_dists[position] < player_dists[position]:
             adversary_territory[position] = adversary_dists[position]
 
-    return player_territory, adversary_territory
+    return player_territory, adversary_territory, overlap
 
 def utility(state):
     """
@@ -171,9 +172,8 @@ def utility(state):
     # New idea for implementation:
     # - use a dual BFS to determine territory control
     # - the utility is the difference in territory controlled by the player and the adversary
-    p_t, a_t = simple_territory_search(state)
-    # if p_t and a_t do not share any keys, then we are in a terminal state
-    if len(set(p_t.keys()).intersection(set(a_t.keys()))) == 0:
+    p_t, a_t, overlap = simple_territory_search(state)
+    if len(overlap) == 0:
         player_score = len(p_t)
         adversary_score = len(a_t)
         if player_score > adversary_score:
