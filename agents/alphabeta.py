@@ -1,4 +1,4 @@
-from .utils import perform_action, undo_last_action, score
+from .utils import perform_action, undo_last_action, simple_territory_search
 import time
 import numpy as np
 
@@ -98,10 +98,9 @@ class AlphaBeta:
                 if child_val > max_val:
                     max_val = child_val
                     max_child = child
+            print(f'chosen action: {max_child}, val: {max_val} utility: {get_utility(max_child)}')
 
-        perform_action(state, max_child)
-        # player_score, adv_score = score(state)
-        # print(f'chosen action: {max_child}, val: {max_val} scores: p:{player_score}, a:{adv_score})')
-        undo_last_action(state)
+
+        
 
         return max_child
