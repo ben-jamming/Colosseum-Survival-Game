@@ -30,7 +30,7 @@ def is_jump_point(state, pos, direction):
         return True
 
     # Additional check for adversary's alignment
-    if adv_point[0] == x and adv_point[1] == y:
+    if adv_point[0] == x or adv_point[1] == y:
         return True
 
     # Check for forced neighbours based on adjacent walls
@@ -111,18 +111,3 @@ def find_jump_points(state, pos):
     
     return jump_points
         
-
-
-
-def jumpPointSearch(state):
-    """
-    We want to use jump point searchto check if it is a terminal state
-    We do this by try to see if there is a path between the player and the adversary
-    if there is a path, then it is not a terminal state
-    if there is no path, then it is a terminal state
-    Our jump point search will have to be slightly modified
-    We are on a grid, and instead of obstacle cells
-    each cell has 4 walls, one for each direction
-    we cannot pass through walls
-    Also we cannot move diagonaly, we can only move up, down, left, or right
-    """

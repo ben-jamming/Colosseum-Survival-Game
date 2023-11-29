@@ -71,7 +71,7 @@ class StudentAgent(Agent):
             utility,
             state,
             max_depth=2,
-            simulation_depth=250,
+            simulation_depth=50,
             time_limit=1.0,
             memory_limit=500,
             iterations=float('inf'),

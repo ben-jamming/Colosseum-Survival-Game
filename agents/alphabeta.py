@@ -22,8 +22,9 @@ class AlphaBeta:
         def child_heuristic(child):
           player_pos = state['player']
           child_pos = child[0]
-          distance_from_player = np.linalg.norm(np.array(player_pos) - np.array(child_pos))
-          distance_to_adv = np.linalg.norm(np.array(child_pos) - np.array(state['adversary']))
+          adv_pos = state['adversary']
+          distance_from_player = (player_pos[0] - child_pos[0])**2 + (player_pos[1] - child_pos[1])**2
+          distance_to_adv = (adv_pos[0] - child_pos[0])**2 + (adv_pos[1] - child_pos[1])**2
           return distance_from_player * distance_to_adv  + distance_from_player
         
         def minimax(cur_state, depth, alpha, beta):

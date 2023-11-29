@@ -71,8 +71,6 @@ def random_simulation(node, state, generate_children, utility, simulation_depth)
     moves_simulated += 1
 
   result = utility(state)
-  #print(f"Simulation result: {result}, Moves simulated: {moves_simulated}")
-  # Revert the state back to what it was prior to the simulations
   for _ in range(moves_simulated):
     undo_last_action(state)
 
