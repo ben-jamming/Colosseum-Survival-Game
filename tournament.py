@@ -2,6 +2,7 @@ import subprocess
 import itertools
 import csv
 import os
+import json
 
 class Tournament:
     _instance = None
@@ -31,8 +32,13 @@ class Tournament:
             '--autoplay', '--autoplay_runs', str(self.runs_per_match)
         ]
         subprocess.run(command)  # No need to capture output
+    
+
 
 if __name__ == "__main__":
-    players = ['random_agent', "student_agent", "alpha_agent", "student_agent5"]
+    with open('/Users/Ben/Documents/McGill/U3/COMP 424/Colosseum-Survival-Game/agents/agent_config.json', 'r') as file:
+        config = json.load(file)
+        players = [agent['name'] for agent in config['agents']]
+        
     tournament = Tournament(players, display_results=True)
     tournament.run()

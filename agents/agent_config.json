@@ -1,0 +1,30 @@
+{
+    "agents": [
+        {
+            "name": "MCTS_Agent",
+            "strategy": "MCTS",
+            "parameters": {
+                "max_depth": 2,
+                "simulation_depth": 100,
+                "time_limit": 1.0,
+                "exploration_constant": 1.0
+            }
+        },
+        {
+            "name": "AlphaBeta_Agent",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 100,
+                "time_limit": 1.0
+            }
+        },
+        {
+            "name": "Random_Agent",
+            "strategy": "Random",
+            "parameters": {}
+        }
+        
+        
+    ]
+}

@@ -120,7 +120,8 @@ class MCTS():
       child_expansion_policy = random_child_expansion_policy,
       time_limit = 2,
       memory_limit = 500, # in MB
-      iterations = 1000
+      iterations = 1000,
+      exploration_constant = 1.414,
       ):
     
     """
@@ -271,7 +272,7 @@ class MCTS():
       for child in root.children:
          #print visits and wins
           perform_action(state, child.parent_move)
-          # print(f"Child: {child.parent_move}, Visits: {child.visits}, Wins: {child.wins}")
+          #print(f"Child: {child.parent_move}, Visits: {child.visits}, Wins: {child.wins}")
           undo_last_action(state)
 
       # go through each child
@@ -293,7 +294,7 @@ class MCTS():
         utility_score = utility(state)
         undo_last_action(state)
         return utility_score
-      print(f'weighted score of best child: {weighted_score(best_child)}')
+      #print(f'weighted score of best child: {weighted_score(best_child)}')
 
 
       # if best_child.wins <= 0 or get_utility(best_child) <= -0.9:
