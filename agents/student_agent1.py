@@ -8,7 +8,7 @@ import time
 from copy import deepcopy
 import math
 from .alphabeta import AlphaBeta
-from .utils import utility, generate_children, get_move_from_state
+from .utils import utility, generate_children
 
 # import math #MUST ADD THIS TO REQUIREMENTS.TXT!!!
 EXP_PARAM =0.04 # this is most important param to tune

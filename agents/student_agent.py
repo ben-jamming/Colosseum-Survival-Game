@@ -9,7 +9,7 @@ from copy import deepcopy
 import time
 
 from .alphabeta import AlphaBeta
-from .utils import utility, generate_children, get_move_from_state
+from .utils import utility, generate_children
 
 @register_agent("student_agent")
 class StudentAgent(Agent):
@@ -77,17 +77,12 @@ class StudentAgent(Agent):
                 self.kwargs.get('time_limit',1.0),
                 self.kwargs.get('breadth_limit',200),
             )
-
         elif self.strategy == "Random":
-            new_action = get_move_from_state(
-                generate_children,
-                state
-            )
+            new_action = generate_children(state)[np.random.randint(len(generate_children(state)))]
             
         else:
             raise ValueError("Invalid strategy")
 
-        # print(new_state)
 
         time_taken = time.time() - start_time
         

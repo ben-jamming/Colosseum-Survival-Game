@@ -71,8 +71,6 @@ def random_simulation(node, state, generate_children, utility, simulation_depth)
     moves_simulated += 1
 
   result = utility(state)
-  #print(f"Simulation result: {result}, Moves simulated: {moves_simulated}")
-  # Revert the state back to what it was prior to the simulations
   for _ in range(moves_simulated):
     undo_last_action(state)
 
@@ -182,13 +180,15 @@ class MCTS():
     
     prev_time = time.time()
 
+    total_iterations = 0
     def resources_left():
+        nonlocal total_iterations
         nonlocal iterations
         nonlocal time_limit
         nonlocal prev_time
         time_limit -= time.time() - prev_time
         prev_time = time.time()
-        return iterations > 0 and time_limit > 0
+        return total_iterations < iterations and time_limit > 0
 
     
     def selection(node: Node):
@@ -249,12 +249,12 @@ class MCTS():
       return node
     
     def mcts(root):
-      nonlocal iterations
+      nonlocal total_iterations
       
       node = root
       
       while resources_left():
-        iterations -= 1
+        total_iterations += 1
         # Select a new node from the current nodes children
         # Move to the selected node 
         # Expand the node according to the expansion policy
@@ -310,7 +310,9 @@ class MCTS():
       return best_child.parent_move
 
     root = Node()
-    return mcts(root)
+    choice = mcts(root)
+    print(f'iterations: {total_iterations}')
+    return choice
 
     
 
