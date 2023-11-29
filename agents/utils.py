@@ -3,10 +3,12 @@ import numpy as np
 from numpy import ndarray
 from collections import deque
 import random
+from functools import lru_cache
 
+@lru_cache(maxsize=100000)
 def h(current, adversary):
 
-    dist =  np.sqrt((current[0] - adversary[0])**2 + (current[1] - adversary[1])**2)
+    dist =  (current[0] - adversary[0])**2 + (current[1] - adversary[1])**2
     # rount to 2 decimal places
     return dist
 
@@ -19,29 +21,14 @@ def get_adjacent_moves(position, state,
     """
 
     moves = []
+    deltas = [((-1, 0), 0), ((0, 1), 1), ((1, 0), 2), ((0, -1), 3)]
     x = position[0]
     y = position[1]
-
-    # DONT TOUCH THIS 
-    # THIS SHIT IS FINICKY AS FUCK
-    walls_cell = {
-        0: lambda a, b: (a-1, b),
-        1: lambda a, b: (a, b+1),
-        2: lambda a, b: (a+1, b),
-        3: lambda a, b: (a, b-1),
-    }
-
-    for i in range(4):
-        wall = state['board'][x][y][i]
-        if wall:
-            continue
-        x_i, y_i = walls_cell[i](x, y)
-        
-        if (x_i, y_i) in obstacles:
-            continue
-        
-        moves.append((x_i, y_i))
-    
+    walls = state['board'][x][y]
+    for delta, i in deltas:
+        nx, ny = x + delta[0], y + delta[1]
+        if not walls[i] and (nx, ny) not in obstacles:
+            moves.append((nx, ny))
     return moves
 
 def is_terminal(state):
@@ -65,26 +52,29 @@ def is_terminal(state):
     heapq.heappush(open_list, (0, player))  # Heap element is a tuple (f_score, node)
     parent_node = {player: None}
     g_score = {player: 0} # g: cheapest distance from start to node
-
-    explored = {}
+    explored = set()
 
     while open_list:
-        current = heapq.heappop(open_list) # Use a min heap
-        explored[current[1]] = current[0]
-        current = current[1] # Get the node from the tuple
-        if current == adversary:
-            return False # We were able to reach the adversary so state not terminal
+        current = heapq.heappop(open_list)[1] # Get the node from the tuple
+
+        if current in explored:
+            continue
+
+        explored.add(current)
 
         for neighbor in get_adjacent_moves(current, state):
-            # Generate the list of possible moves from the current node
+            if neighbor in explored:
+                continue
+
             tentative_cheapest_distance = g_score[current] + 1 
-            
-            # Check if we have found a shorter path to the neighbor or if we haven't visited the neighbor yet
-            if neighbor not in g_score or tentative_cheapest_distance <= g_score[neighbor]:
+
+            if neighbor not in g_score or tentative_cheapest_distance < g_score[neighbor]:
+                if neighbor == adversary:
+                    return False
+
                 parent_node[neighbor] = current
                 g_score[neighbor] = tentative_cheapest_distance
                 f_score = tentative_cheapest_distance + h(neighbor, adversary)
-                explored[neighbor] = f_score
                 heapq.heappush(open_list, (f_score, neighbor))
 
     # No path found, it's a terminal state
@@ -389,10 +379,6 @@ def generate_children(state):
     This generates the children of a given state
     An action that mutates the state of the board
     """
-    
-    terminal = is_terminal(state)
-    if terminal:
-        return []
     possible_moves = get_possible_moves(state)
     if len(possible_moves) == 0:
         return []

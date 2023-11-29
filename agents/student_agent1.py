@@ -70,7 +70,7 @@ class AlphaAgent(Agent):
             state,
             max_depth=6,
             time_limit=1.0,
-            breadth_limit=100
+            breadth_limit=200,
         )
 
         time_taken = time.time() - start_time
