@@ -8,4 +8,7 @@ from .human_agent import HumanAgent
 # from .student_agent4 import StudentAgent4
 # from .student_agent5 import StudentAgent5
 from .agent_factory import load_agents_from_config
-load_agents_from_config('/Users/Ben/Documents/McGill/U3/COMP 424/Colosseum-Survival-Game/agents/agent_config.json')
+
+import os
+config_path = f'{os.path.dirname(os.path.realpath(__file__))}/agent_config.json'
+load_agents_from_config(config_path)
