@@ -3,7 +3,7 @@ import itertools
 import csv
 import os
 import json
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Manager, Pool
 
 from numpy import disp
 from simulator import Simulator
@@ -49,34 +49,31 @@ class Tournament:
 
     def run(self):
         """Runs the tournament."""
-        processes = []
         # Create a queue for inter-process communication
-        queue = Queue()
+        with Manager() as manager:
 
-        # Start the writer process
-        writer_proc = Process(target=self.writer_process, args=(queue,))
-        writer_proc.start()
+            queue = manager.Queue()
+            writer_proc = Process(target=self.writer_process, args=(queue,))
+            writer_proc.start()
+            simulations = [(player1, player2, queue) for player1, player2 in itertools.combinations_with_replacement(self.players, 2)]
+            
 
-        # Modify process creation to pass the queue
-        for player1, player2 in itertools.combinations_with_replacement(self.players, 2):
-            process = Process(target=self._run_simulation, args=(player1, player2, queue))
-            processes.append(process)
-            process.start()
+            # IMPORTANT
+            # MAKE THIS WHATEVER THE MAXIMUM NUMBER OF THREADS
+            # YOU THINK YOU CAN HANDLE IS
+            with Pool(8) as pool:
+                pool.starmap(self._run_simulation, simulations)
 
-        for process in processes:
-            process.join()
-
-        # Signal the writer process to terminate
-        queue.put("DONE")
-        writer_proc.join()         
+            # Signal the writer process to terminate
+            queue.put("DONE")
+            writer_proc.join()     
 
     def _run_simulation(self, player1, player2, queue):
         """Initiates a set of games between two players."""
-        # Construct arguments for the Simulator
         args = argparse.Namespace(
             player_1=player1,
             player_2=player2,
-            board_size=12,  # Assuming you have a default or it's set elsewhere
+            board_size=12, # This is just a default
             board_size_min=6,
             board_size_max=12,
             display=False,
@@ -86,12 +83,11 @@ class Tournament:
             autoplay=True,
             autoplay_runs=self.runs_per_match
         )
-        # Create and run the Simulator with the provided arguments and queue
         simulator = Simulator(args, queue)
         simulator.autoplay()
 
 if __name__ == "__main__":
-    with open('agents/agent_configurations.json', 'r') as file:
+    with open('agents/agent_config.json', 'r') as file:
         config = json.load(file)
         players = [agent['name'] for agent in config['agents']]
         

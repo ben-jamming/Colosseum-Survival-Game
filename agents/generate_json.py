@@ -6,7 +6,7 @@ def generate_agent_configs():
     simulation_depths = range(50, 200, 50)
     time_limits = [1.0]
     exploration_constants = [0.5, 1.0, 1.5]
-    breadth_limits = range(50, 751, 50)
+    breadth_limits = range(100, 1051, 100)
     agents = []
 
     # # Generate MCTS agents
@@ -37,7 +37,7 @@ def generate_agent_configs():
         })
 
     # Write the configurations to a JSON file
-    with open('agent_configurations.json', 'w') as file:
+    with open('agent_config.json', 'w') as file:
         json.dump({"agents": agents}, file, indent=4)
 
 if __name__ == "__main__":
