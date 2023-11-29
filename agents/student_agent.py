@@ -75,6 +75,15 @@ class StudentAgent(Agent):
                 self.kwargs.get('max_depth',2)
             )
 
+        elif self.strategy == "Random":
+            new_action = get_move_from_state(
+                generate_children,
+                state
+            )
+            
+        else:
+            raise ValueError("Invalid strategy")
+
         # print(new_state)
 
         time_taken = time.time() - start_time

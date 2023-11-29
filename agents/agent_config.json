@@ -15,6 +15,13 @@
             "parameters": {
                 "max_depth": 2
             }
+        },
+        {
+            "name": "Random_Agent",
+            "strategy": "Random",
+            "parameters": {}
         }
+        
+        
     ]
 }
