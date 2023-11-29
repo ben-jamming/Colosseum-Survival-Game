@@ -1,3 +1,4 @@
+from re import A
 import numpy as np
 from copy import deepcopy
 import traceback
@@ -63,12 +64,12 @@ class World:
                 f"Agent '{player_2}' is not registered. {AGENT_NOT_FOUND_MSG}"
             )
 
-        p0_agent = AGENT_REGISTRY[player_1]
-        p1_agent = AGENT_REGISTRY[player_2]
+        p0_agent_factory = AGENT_REGISTRY.get(player_1)
+        p1_agent_factory = AGENT_REGISTRY.get(player_2)
         logger.info(f"Registering p0 agent : {player_1}")
-        self.p0 = p0_agent()
+        self.p0 = p0_agent_factory()
         logger.info(f"Registering p1 agent : {player_2}")
-        self.p1 = p1_agent()
+        self.p1 = p1_agent_factory()
 
         # check autoplay
         if autoplay:
