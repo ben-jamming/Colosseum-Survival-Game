@@ -4,6 +4,7 @@ from agents.mcts import MCTS
 from store import register_agent
 import numpy as np
 import time
+from .bitboard import BitBoard
 
 
 from .alphabeta import AlphaBeta
@@ -44,8 +45,9 @@ class StudentAgent(Agent):
 
         Please check the sample implementation in agents/random_agent.py or agents/human_agent.py for more details.
         """
+        board_number = BitBoard(chess_board)
         state = {
-            'board': chess_board,
+            'board': board_number,
             'player': my_pos,
             'adversary': adv_pos,
             'max_step': max_step,
@@ -99,6 +101,10 @@ class StudentAgent(Agent):
         time_taken = time.time() - start_time
         
         #print("My MCTS AI's turn took ", time_taken, "seconds.")
+        # print chosen action
+        print("My MCTS AI's action: ", new_action)
+        # print walls at that cell
+        print("Walls at that cell: ", chess_board[new_action[0][0], new_action[0][1], 0:4])
 
 
         return new_action
