@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 
 class BitBoard():
 
-    def __init__(self, npboard=None):
+    def __init__(self,npboard=None, n=12):
+        self.n = n
         if npboard is not None:
+            self.n = npboard.shape[0]
             self.from_array(npboard)
     
     def bit_index(self, i, j, wall):
@@ -19,7 +21,8 @@ class BitBoard():
             for j in range(n):
                 for wall in range(4):
                     if npboard[i, j, wall]:
-                        self.board |= 1 << (4 * (self.n * i + j) + wall)
+                        bit_index = self.bit_index(i, j, wall)
+                        self.board |= (1 << bit_index)
     
     def to_array(self):
         n = self.n
@@ -27,19 +30,56 @@ class BitBoard():
         for i in range(n):
             for j in range(n):
                 for wall in range(4):
-                    bit_index = (4 * (self.n * i + j) + wall)
+                    bit_index = self.bit_index(i, j, wall)
                     if (self.board & (1 << bit_index)):
                         npboard[i, j, wall] = 1
         return npboard
     
     def __getitem__(self, key):
         i, j, wall = key
-        bit_index = (4 * (self.n * i + j) + wall)
-        return (self.board & (1 << bit_index)) != 0
+        i = int(i)
+        j = int(j)
+        bit_index = self.bit_index(i, j, wall)
+        return (int(self.board) & int(1 << bit_index)) != 0
     
+    def walls(self, pos):
+        i, j = pos
+        # use bit shiftin to get the walls
+        # we will need a bit mask , and then bit shift back
+        i = int(i)
+        j = int(j)
+        bit_index = 4 * (self.n * i + j)
+        # mask = 0xF << bit_index
+        # walls = (self.board & mask) >> bit_index
+        walls = (self.board >> bit_index) & 0xF
+
+        return (bool(walls & 1), bool(walls & 2), bool(walls & 4), bool(walls & 8))
+    
+    def __str__(self) -> str:
+        string = ""
+        #print the bit board
+        bit_string = bin(self.board)[2:]
+        bit_string = "0" * (4 * self.n * self.n - len(bit_string)) + bit_string
+        # print each cell by going through the row and column
+        # but a space every 4 bits
+        # using string slicing
+
+        for i in range(self.n-1, -1, -1):
+            
+            for j in range(self.n-1, -1, -1):
+                walls = bit_string[self.bit_index(i, j, 0):self.bit_index(i, j, 4)]
+                string += walls[::-1] + " "
+            string += "\n"
+        string += "\n"
+        return string
+
+      
     def __setitem__(self, key, value):
         i, j, wall = key
-        bit_index = (4 * (self.n * i + j) + wall)
+        i = int(i)
+        j = int(j)
+        bit_index = self.bit_index(i, j, wall)
+
         if value:
             self.board |= (1 << bit_index)
         else:
@@ -113,7 +153,7 @@ def display_board(board):
 
 if __name__ == "__main__":
     npboard = generate_random_board(10)
-    board = BitBoard(npboard)
+    board = BitBoard(npboard=npboard)
 
     # cover the first top half of the board with all walls using bit
     for i in range(5):
@@ -145,6 +185,11 @@ if __name__ == "__main__":
     end = time.time()
 
     print("numpy array time: ", end - start)
+
+
+    boardnum = 8734470310847083694450306179975730550608153
+    board = BitBoard(n=6)
+    board.board = boardnum
 
 
     board = board.to_array()

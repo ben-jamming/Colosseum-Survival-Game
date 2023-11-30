@@ -66,7 +66,7 @@ def is_terminal(state, jump_point_search=False):
             continue
 
         explored.add(current)
-        walls = tuple(state['board'][current[0]][current[1]])
+        walls = state['board'].walls(current)
         neighbors = get_adjacent_moves(current, walls)
 
         for neighbor in neighbors:
@@ -232,7 +232,7 @@ def get_possible_positions(board,
         u = queue.popleft()
         if distances[u] >= max_step - 1 and depth_limited:
             continue
-        walls = tuple(board[u[0]][u[1]])
+        walls = board.walls(u)
         for v in get_adjacent_moves(u, walls,
                                     obstacle=obstacle,
                                     ):
@@ -265,7 +265,7 @@ def get_possible_moves(state):
         x = position[0]
         y = position[1]
         for i in range(4):
-            if state['board'][x][y][i]:
+            if state['board'][x,y,i]:
                 continue
             possible_moves.append((position, i))
     return possible_moves
@@ -289,10 +289,10 @@ def perform_action(state, action):
     moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
 
     # place wall, and opposite wall
-    state['board'][x][y][wall] = True
+    state['board'][x,y,wall] = True
     move = moves[wall]
     anti_x, anti_y = (x + move[0], y + move[1])
-    state['board'][anti_x][anti_y][opposites[wall]] = True
+    state['board'][anti_x,anti_y,opposites[wall]] = True
 
     # for each action, we save whos turn it was , and where they move from
     # (turn, prev_position, action)
@@ -328,10 +328,10 @@ def undo_last_action(state):
     moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
 
     # place wall, and opposite wall
-    state['board'][x][y][wall] = False
+    state['board'][x,y,wall] = False
     move = moves[wall]
     anti_x, anti_y = (x + move[0], y + move[1])
-    state['board'][anti_x][anti_y][opposites[wall]] = False
+    state['board'][anti_x,anti_y,opposites[wall]] = False
 
     state['is_player_turn'] = not state['is_player_turn']
 
@@ -355,7 +355,7 @@ def mcts_get_random_move(state):
     y_bounds = (pos[1] - state['max_step'], pos[1] + state['max_step'])
     # if there is wall in the direction of the extended bound, cut it off to just the position
     for i in range(4):
-        if state['board'][pos[0]][pos[1]][i]:
+        if state['board'][pos[0], pos[1], i]:
             if i == 0:
                 x_bounds = (pos[0], x_bounds[1])
             elif i == 1:
@@ -366,20 +366,18 @@ def mcts_get_random_move(state):
                 y_bounds = (pos[1], y_bounds[1])
     # make sure its in bounds of board
     board =state['board']
-    board_len_x = len(board)
-    board_len_y = len(board[0])
-    x_bounds = (max(0, x_bounds[0]), min(board_len_x - 1, x_bounds[1]))
-    y_bounds = (max(0, y_bounds[0]), min(board_len_y - 1, y_bounds[1]))
+    x_bounds = (max(0, x_bounds[0]), min(board.n - 1, x_bounds[1]))
+    y_bounds = (max(0, y_bounds[0]), min(board.n - 1, y_bounds[1]))
 
 
     random_move_found = True
     count = 0
     while not random_move_found:
-        if count > board_len_x * board_len_y:
+        if count > board.n * board.n :
             return None
-        move = random.randint(0, len(board) - 1), random.randint(0, len(board[0]) - 1)
+        move = random.randint(0, board.n - 1), random.randint(0, board.n - 1)
         for i in range(4):
-            if not state['board'][move[0]][move[1]][i]:
+            if not state['board'][move[0], move[1], i]:
                 random_move_found = True
                 return (move, i)
         count += 1
