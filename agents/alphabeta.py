@@ -18,6 +18,7 @@ class AlphaBeta:
         actions are (position, wall_direction)
         """
         start_time = time.time()
+        iterations = 0
 
         def child_heuristic(child):
           player_pos = state['player']
@@ -28,29 +29,37 @@ class AlphaBeta:
           return distance_from_player * distance_to_adv  + distance_from_player
         
         def minimax(cur_state, depth, alpha, beta):
+            nonlocal iterations
+
             # if max_player = True, then we are maximizing player
             current_time = time.time()
             if current_time - start_time > time_limit:
                 return utility(cur_state)
+
+            if depth == max_depth:
+                return utility(cur_state)
+            
             children = generate_children(cur_state)
             children.sort(key=child_heuristic)
             children = children[:int(breadth_limit/depth)]
-
-
-            if depth == max_depth or not children:
+            
+            if not children:
                 return utility(cur_state)
             
             max_player = cur_state['is_player_turn']
 
             cur_val = float('-inf') if max_player else float('inf')
 
+            
+
             for child in children:
-                if current_time - start_time > time_limit:
-                    break
                 
                 perform_action(cur_state, child)
                 val = minimax(cur_state, depth + 1, alpha, beta)
+                if current_time - start_time > time_limit:
+                    break
                 undo_last_action(cur_state)
+                iterations += 1
 
                 if max_player:
                     cur_val = max(cur_val, val)
@@ -99,6 +108,8 @@ class AlphaBeta:
                     max_val = child_val
                     max_child = child
             print(f'chosen action: {max_child}, val: {max_val} utility: {get_utility(max_child)}')
+        
+        print('iterations: ', iterations)
 
 
         

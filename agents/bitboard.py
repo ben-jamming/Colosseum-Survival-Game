@@ -1,6 +1,7 @@
 import numpy as np
 
 import matplotlib.pyplot as plt
+from functools import lru_cache
 
 class BitBoard():
 
@@ -42,6 +43,7 @@ class BitBoard():
         bit_index = self.bit_index(i, j, wall)
         return (int(self.board) & int(1 << bit_index)) != 0
     
+    @lru_cache(maxsize=None)
     def walls(self, pos):
         i, j = pos
         # use bit shiftin to get the walls

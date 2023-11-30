@@ -10,7 +10,7 @@ def h(current, adversary):
     # rount to 2 decimal places
     return dist
 
-@lru_cache(maxsize=400)
+@lru_cache(maxsize=600)
 def get_adjacent_moves(position, walls,
                        obstacle=None,
                        ):
@@ -103,6 +103,7 @@ def count_closest_cells(adversary_distances, player_distances):
 
     return closest_cells
 
+@lru_cache(maxsize=1000000)
 def simple_territory_search(board, player, adversary, max_step):
     """
     Do a bfs from both the player and the adversary and get their distance to every square
@@ -172,6 +173,13 @@ def utility(state):
     # New idea for implementation:
     # - use a dual BFS to determine territory control
     # - the utility is the difference in territory controlled by the player and the adversary
+
+    # cheap utility, return a negative number of the walls directly adjacent to the player
+    # this will encourage the player to move away from the walls
+    # return -len(state['board'].walls(state['player'])) / 8  + len(state['board'].walls(state['adversary'])) / 8
+
+    # return the euclidean distance between the player and the adversary
+
     p_t, a_t, overlap = simple_territory_search(state['board'], state['player'], state['adversary'], state['max_step'])
     if len(overlap) == 0:
         player_score = len(p_t)
@@ -182,13 +190,15 @@ def utility(state):
             return -1
         else:
             return -0.99
-    point_p = len(p_t)
-    point_a = len(a_t)
+    point_p = len(p_t) * len(p_t)
+    point_a = len(a_t) * len(a_t) * 2
     if point_p == 0 and point_a == 0:
         return 0
     win_priority_scaler = 0.5
     return ((point_p - point_a) / (point_p + point_a))  * win_priority_scaler    
 
+
+@lru_cache(maxsize=1000000)
 def get_possible_positions(board,
                            max_step,
                            position,
