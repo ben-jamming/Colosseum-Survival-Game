@@ -1,16 +1,14 @@
-import queue
 from world import World, PLAYER_1_NAME, PLAYER_2_NAME
 import argparse
 from utils import all_logging_disabled
 import logging
 from tqdm import tqdm
 import numpy as np
-import csv
-import time
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -38,6 +36,7 @@ def get_args():
     args = parser.parse_args()
     return args
 
+
 class Simulator:
     """
     Entry point of the game simulator.
@@ -47,9 +46,8 @@ class Simulator:
     args : argparse.Namespace
     """
 
-    def __init__(self, args, queue=None):
+    def __init__(self, args):
         self.args = args
-        self.queue = queue
 
     def reset(self, swap_players=False, board_size=None):
         """
@@ -78,36 +76,18 @@ class Simulator:
             display_save_path=self.args.display_save_path,
             autoplay=self.args.autoplay,
         )
-    def _write_turn_data_to_csv(self, game_id, turn_data):
-        """
-        Added a method to save turn data to a csv
-        """
-        filename = f"game_{game_id}_turn_data.csv"
-        # write turn data into csv in turn_data folder
-        with open(f'turn_data/{filename}', 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['turn_number', 'turn_time'])
-            for turn in turn_data:
-                writer.writerow([turn[0], turn[1]])
+        if self.world.initial_end:
+            logger.warning("Initialization failed! Reset the world again!")
+            self.reset()
 
-
-    def run(self, game_id="not_auto_played", swap_players=False, board_size=None):
+    def run(self, swap_players=False, board_size=None):
         self.reset(swap_players=swap_players, board_size=board_size)
-        turn_data = []
-        turn_number = 0
         is_end, p0_score, p1_score = self.world.step()
-
         while not is_end:
-            start_time = time.time()
             is_end, p0_score, p1_score = self.world.step()
-            turn_time = time.time() - start_time
-            turn_data.append((turn_number, turn_time))
-            turn_number += 1
-        # logger.info(
-        #     f"Run finished. Player {PLAYER_1_NAME}: {p0_score}, Player {PLAYER_2_NAME}: {p1_score}"
-        # )
-
-        self._write_turn_data_to_csv(game_id, turn_data) # game id is the index of autoplay runs
+        logger.info(
+            f"Run finished. Player {PLAYER_1_NAME}: {p0_score}, Player {PLAYER_2_NAME}: {p1_score}"
+        )
         return p0_score, p1_score, self.world.p0_time, self.world.p1_time
 
     def autoplay(self):
@@ -118,21 +98,15 @@ class Simulator:
         p2_win_count = 0
         p1_times = []
         p2_times = []
-
         if self.args.display:
             logger.warning("Since running autoplay mode, display will be disabled")
         self.args.display = False
-
         with all_logging_disabled():
-            p0_avg_score = 0
-            p1_avg_score = 0
             for i in tqdm(range(self.args.autoplay_runs)):
-                print(f"===================Match #{i}===================")
                 swap_players = i % 2 == 0
-                board_size = np.random.randint(self.args.board_size_min, self.args.board_size_max)
-                game_id = f"{i}_{self.args.player_1}_vs_{self.args.player_2}"
+                board_size = np.random.randint(args.board_size_min, args.board_size_max)
                 p0_score, p1_score, p0_time, p1_time = self.run(
-                    game_id=game_id, swap_players=swap_players, board_size=board_size
+                    swap_players=swap_players, board_size=board_size
                 )
                 if swap_players:
                     p0_score, p1_score, p0_time, p1_time = (
@@ -148,29 +122,19 @@ class Simulator:
                 else:  # Tie
                     p1_win_count += 1
                     p2_win_count += 1
-                p1_times.extend(p0_time)
-                p2_times.extend(p1_time)
-                p0_avg_score += p0_score
-                p1_avg_score += p1_score
-                # Append result to CSV
-            p0_avg_score = p0_avg_score / self.args.autoplay_runs
-            p0_avg_score = p1_avg_score / self.args.autoplay_runs
-            p_0_max_time = np.round(np.max(p1_times),5)
-            p_1_max_time = np.round(np.max(p2_times),5)
-            #print([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs])
-            self.queue.put([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs, board_size])
+                p1_times.append(p0_time)
+                p2_times.append(p1_time)
 
-        # logger.info(
-        #     f"Player {PLAYER_1_NAME} win percentage: {p1_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p1_times),5)} seconds.")
-        # logger.info(
-        #     f"Player {PLAYER_2_NAME} win percentage: {p2_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p2_times),5)} seconds.")
+        logger.info(
+            f"Player {PLAYER_1_NAME} win percentage: {p1_win_count / self.args.autoplay_runs} ({np.round(np.mean(p1_times), 5)} seconds/game)"
+        )
+        logger.info(
+            f"Player {PLAYER_2_NAME} win percentage: {p2_win_count / self.args.autoplay_runs}, ({np.round(np.mean(p2_times), 5)} seconds/game)"
+        )
+
 
 if __name__ == "__main__":
     args = get_args()
-    # Check if the turn_data directory exists
-    import os
-    if not os.path.exists('turn_data'):
-        os.makedirs('turn_data')
     simulator = Simulator(args)
     if args.autoplay:
         simulator.autoplay()

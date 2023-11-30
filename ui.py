@@ -25,7 +25,6 @@ class UIEngine:
         set_top_wall=False,
         set_bottom_wall=False,
         color="silver",
-        fill=False
     ):
         """
         Plot a box with configurable walls
@@ -51,15 +50,6 @@ class UIEngine:
         color : str
             color of the wall
         """
-
-        if fill:
-            plt.fill(
-                [x, x + w, x + w, x, x],
-                [y, y, y + w, y + w, y],
-                color=color,
-                alpha=0.5,
-                edgecolor=color,
-            )
         # left wall
         plt.plot([x, x], [y, y + w], "-", lw=2, color="red" if set_left_wall else color)
         # top wall
@@ -116,13 +106,7 @@ class UIEngine:
         self.plot_box(1, 3, self.grid_size[0] + self.grid_size[1], color="black")
 
     def plot_grid_with_board(
-        self, chess_board, 
-        player_1_pos=None, 
-        player_2_pos=None, 
-        debug=False,
-        valid_moves_p0=None,
-        valid_moves_p1=None
-        
+        self, chess_board, player_1_pos=None, player_2_pos=None, debug=False
     ):
         """
         Main function to plot the grid of the game
@@ -146,35 +130,15 @@ class UIEngine:
                 right_wall = chess_board[x_pos, y_pos, 1]
                 down_wall = chess_board[x_pos, y_pos, 2]
                 left_wall = chess_board[x_pos, y_pos, 3]
-                cur_color = "silver"
-                fill_box = False
+
                 # Display text
                 text = ""
-                if valid_moves_p0 is not None:
-                    if (x_pos, y_pos) in valid_moves_p0:
-                        # text += str(f'[{valid_moves_p0[(x_pos, y_pos)]:.0f}]')
-                        cur_color = "green"
-                        fill_box = True
-                if valid_moves_p1 is not None:
-                    if (x_pos, y_pos) in valid_moves_p1:
-                        # text += str(f'[{valid_moves_p1[(x_pos, y_pos)]:.0f}]')
-                        cur_color = "blue"
-                        fill_box = True
-                # if both player can reach teh same cell color it purple
-                if valid_moves_p0 is not None and valid_moves_p1 is not None:
-                    if (x_pos, y_pos) in valid_moves_p0 and (x_pos, y_pos) in valid_moves_p1:
-                        cur_color = "purple"
-                        fill_box = True
                 if player_1_pos is not None:
                     if player_1_pos[0] == x_pos and player_1_pos[1] == y_pos:
-                        text = "A"
+                        text += "A"
                 if player_2_pos is not None:
                     if player_2_pos[0] == x_pos and player_2_pos[1] == y_pos:
-                        text = "B"
-
-                  
-                    
-
+                        text += "B"
 
                 if debug:
                     text += " " + str(x_pos) + "," + str(y_pos)
@@ -188,8 +152,6 @@ class UIEngine:
                     set_top_wall=up_wall,
                     set_bottom_wall=down_wall,
                     text=text,
-                    color=cur_color,
-                    fill=fill_box
                 )
                 y_pos += 1
             x_pos += 1
@@ -270,10 +232,7 @@ class UIEngine:
             0.7, 0.1, f"Max steps: {self.world.max_step}", horizontalalignment="left"
         )
 
-    def render(self, chess_board, p1_pos, p2_pos, 
-               valid_moves_p0=None,
-                valid_moves_p1=None,
-                 debug=False):
+    def render(self, chess_board, p1_pos, p2_pos, debug=False):
         """
         Render the board along with player positions
 
@@ -290,9 +249,7 @@ class UIEngine:
 
         """
         plt.clf()
-        self.plot_grid_with_board(chess_board, p1_pos, p2_pos, debug=debug,
-                                   valid_moves_p0=valid_moves_p0,
-                                   valid_moves_p1=valid_moves_p1)
+        self.plot_grid_with_board(chess_board, p1_pos, p2_pos, debug=debug)
         self.plot_game_boundary()
         self.fix_axis()
         self.plot_text_info()
