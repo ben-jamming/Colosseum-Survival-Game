@@ -100,11 +100,11 @@ class StudentAgent(Agent):
 
         time_taken = time.time() - start_time
         
-        #print("My MCTS AI's turn took ", time_taken, "seconds.")
+        print(f"{self.name}'s turn took ", time_taken, "seconds.")
         # print chosen action
-        print("My MCTS AI's action: ", new_action)
+        #print("My MCTS AI's action: ", new_action)
         # print walls at that cell
-        print("Walls at that cell: ", chess_board[new_action[0][0], new_action[0][1], 0:4])
+        #print("Walls at that cell: ", chess_board[new_action[0][0], new_action[0][1], 0:4])
 
 
         return new_action

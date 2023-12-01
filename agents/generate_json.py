@@ -6,8 +6,8 @@ def generate_agent_configs():
     simulation_depths = range(50, 200, 50)
     time_limits = [0.3]
     exploration_constants = [0.5, 1.0, 1.5]
-    breadth_limits = range(400, 401, 1)
-    dynamic_policies = [True, False]
+    breadth_limits = range(300, 601, 100)
+    dynamic_policies = [False]
     agents = []
 
     # # Generate MCTS agents
@@ -26,7 +26,7 @@ def generate_agent_configs():
 
     # Generate AlphaBeta agents
     for depth, breadth, time_limit, dynamic_policy in itertools.product(max_depths, breadth_limits, time_limits, dynamic_policies):
-        agent_name = f"AB_Dpth_{depth}_Brth_{breadth}_dp{dynamic_policy}"
+        agent_name = f"Depth_{depth}_Brth_{breadth}"
         agents.append({
             "name": agent_name,
             "strategy": "AlphaBeta",

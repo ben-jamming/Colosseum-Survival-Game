@@ -98,16 +98,16 @@ class Simulator:
         is_end, p0_score, p1_score = self.world.step()
 
         while not is_end:
-            start_time = time.time()
+            #start_time = time.time()
             is_end, p0_score, p1_score = self.world.step()
-            turn_time = time.time() - start_time
-            turn_data.append((turn_number, turn_time))
+            #turn_time = time.time() - start_time
+            #turn_data.append((turn_number, turn_time))
             turn_number += 1
         # logger.info(
         #     f"Run finished. Player {PLAYER_1_NAME}: {p0_score}, Player {PLAYER_2_NAME}: {p1_score}"
         # )
 
-        self._write_turn_data_to_csv(game_id, turn_data) # game id is the index of autoplay runs
+        #self._write_turn_data_to_csv(game_id, turn_data) # game id is the index of autoplay runs
         return p0_score, p1_score, self.world.p0_time, self.world.p1_time
 
     def autoplay(self):
