@@ -1,16 +1,6 @@
 {
     "agents": [
         {
-            "name": "Depth_2_Brth_50",
-            "strategy": "AlphaBeta",
-            "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 50,
-                "time_limit": 0.3,
-                "dynamic_policy": false
-            }
-        },
-        {
             "name": "Depth_3_Brth_50",
             "strategy": "AlphaBeta",
             "parameters": {
