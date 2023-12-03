@@ -118,7 +118,7 @@ class StudentAgent(Agent):
         game_id = f"{self.turn_number}_{self.name}_vs_p2"
         turn_data = [
             game_id, self.turn_number, board_number, wall_count, max_step,
-              my_pos, adv_pos, utility(chess_board), time_taken, new_action
+              my_pos, adv_pos, utility(state), time_taken, new_action
         ]
         self._write_turn_data_to_csv(game_id, turn_data)
         
