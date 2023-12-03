@@ -2,11 +2,11 @@ import json
 import itertools
 
 def generate_agent_configs():
-    max_depths = range(2, 3, 1)
+    max_depths = range(2, 5, 1)
     simulation_depths = range(50, 200, 50)
     time_limits = [0.3]
     exploration_constants = [0.5, 1.0, 1.5]
-    breadth_limits = range(300, 601, 100)
+    breadth_limits = range(50, 51, 1)
     dynamic_policies = [False]
     agents = []
 
