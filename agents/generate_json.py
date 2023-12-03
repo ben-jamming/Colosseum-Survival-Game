@@ -6,7 +6,7 @@ def generate_agent_configs():
     simulation_depths = range(50, 200, 50)
     time_limits = [0.3]
     exploration_constants = [0.5, 1.0, 1.5]
-    breadth_limits = range(400, 1001, 100)
+    breadth_limits = range(25, 106, 10)
     dynamic_policies = [False]
     agents = []
 

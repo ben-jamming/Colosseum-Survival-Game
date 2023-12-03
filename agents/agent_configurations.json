@@ -1,281 +1,361 @@
 {
     "agents": [
         {
-            "name": "AB_Dpth_1_Brth_400_dpFalse",
+            "name": "AB_Dpth_1_Brth_25_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 1,
-                "breadth_limit": 400,
+                "breadth_limit": 25,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_1_Brth_500_dpFalse",
+            "name": "AB_Dpth_1_Brth_35_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 1,
-                "breadth_limit": 500,
+                "breadth_limit": 35,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_1_Brth_600_dpFalse",
+            "name": "AB_Dpth_1_Brth_45_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 1,
-                "breadth_limit": 600,
+                "breadth_limit": 45,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_1_Brth_700_dpFalse",
+            "name": "AB_Dpth_1_Brth_55_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 1,
-                "breadth_limit": 700,
+                "breadth_limit": 55,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_1_Brth_800_dpFalse",
+            "name": "AB_Dpth_1_Brth_65_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 1,
-                "breadth_limit": 800,
+                "breadth_limit": 65,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_1_Brth_900_dpFalse",
+            "name": "AB_Dpth_1_Brth_75_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 1,
-                "breadth_limit": 900,
+                "breadth_limit": 75,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_1_Brth_1000_dpFalse",
+            "name": "AB_Dpth_1_Brth_85_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 1,
-                "breadth_limit": 1000,
+                "breadth_limit": 85,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_400_dpFalse",
+            "name": "AB_Dpth_1_Brth_95_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 1,
+                "breadth_limit": 95,
+                "time_limit": 0.3,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_1_Brth_105_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 1,
+                "breadth_limit": 105,
+                "time_limit": 0.3,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_2_Brth_25_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 400,
+                "breadth_limit": 25,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_500_dpFalse",
+            "name": "AB_Dpth_2_Brth_35_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 500,
+                "breadth_limit": 35,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_600_dpFalse",
+            "name": "AB_Dpth_2_Brth_45_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 600,
+                "breadth_limit": 45,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_700_dpFalse",
+            "name": "AB_Dpth_2_Brth_55_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 700,
+                "breadth_limit": 55,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_800_dpFalse",
+            "name": "AB_Dpth_2_Brth_65_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 800,
+                "breadth_limit": 65,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_900_dpFalse",
+            "name": "AB_Dpth_2_Brth_75_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 900,
+                "breadth_limit": 75,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_1000_dpFalse",
+            "name": "AB_Dpth_2_Brth_85_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 1000,
+                "breadth_limit": 85,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_3_Brth_400_dpFalse",
+            "name": "AB_Dpth_2_Brth_95_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 95,
+                "time_limit": 0.3,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_2_Brth_105_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 105,
+                "time_limit": 0.3,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_3_Brth_25_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 3,
-                "breadth_limit": 400,
+                "breadth_limit": 25,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_3_Brth_500_dpFalse",
+            "name": "AB_Dpth_3_Brth_35_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 3,
-                "breadth_limit": 500,
+                "breadth_limit": 35,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_3_Brth_600_dpFalse",
+            "name": "AB_Dpth_3_Brth_45_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 3,
-                "breadth_limit": 600,
+                "breadth_limit": 45,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_3_Brth_700_dpFalse",
+            "name": "AB_Dpth_3_Brth_55_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 3,
-                "breadth_limit": 700,
+                "breadth_limit": 55,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_3_Brth_800_dpFalse",
+            "name": "AB_Dpth_3_Brth_65_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 3,
-                "breadth_limit": 800,
+                "breadth_limit": 65,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_3_Brth_900_dpFalse",
+            "name": "AB_Dpth_3_Brth_75_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 3,
-                "breadth_limit": 900,
+                "breadth_limit": 75,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_3_Brth_1000_dpFalse",
+            "name": "AB_Dpth_3_Brth_85_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 3,
-                "breadth_limit": 1000,
+                "breadth_limit": 85,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_4_Brth_400_dpFalse",
+            "name": "AB_Dpth_3_Brth_95_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
-                "max_depth": 4,
-                "breadth_limit": 400,
+                "max_depth": 3,
+                "breadth_limit": 95,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_4_Brth_500_dpFalse",
+            "name": "AB_Dpth_3_Brth_105_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
-                "max_depth": 4,
-                "breadth_limit": 500,
+                "max_depth": 3,
+                "breadth_limit": 105,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_4_Brth_600_dpFalse",
+            "name": "AB_Dpth_4_Brth_25_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 4,
-                "breadth_limit": 600,
+                "breadth_limit": 25,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_4_Brth_700_dpFalse",
+            "name": "AB_Dpth_4_Brth_35_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 4,
-                "breadth_limit": 700,
+                "breadth_limit": 35,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_4_Brth_800_dpFalse",
+            "name": "AB_Dpth_4_Brth_45_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 4,
-                "breadth_limit": 800,
+                "breadth_limit": 45,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_4_Brth_900_dpFalse",
+            "name": "AB_Dpth_4_Brth_55_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 4,
-                "breadth_limit": 900,
+                "breadth_limit": 55,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_4_Brth_1000_dpFalse",
+            "name": "AB_Dpth_4_Brth_65_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 4,
-                "breadth_limit": 1000,
+                "breadth_limit": 65,
+                "time_limit": 0.3,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_4_Brth_75_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 4,
+                "breadth_limit": 75,
+                "time_limit": 0.3,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_4_Brth_85_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 4,
+                "breadth_limit": 85,
+                "time_limit": 0.3,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_4_Brth_95_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 4,
+                "breadth_limit": 95,
+                "time_limit": 0.3,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_4_Brth_105_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 4,
+                "breadth_limit": 105,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }
