@@ -107,7 +107,7 @@ class Simulator:
         #     f"Run finished. Player {PLAYER_1_NAME}: {p0_score}, Player {PLAYER_2_NAME}: {p1_score}"
         # )
 
-        self._write_turn_data_to_csv(game_id, turn_data) # game id is the index of autoplay runs
+        #self._write_turn_data_to_csv(game_id, turn_data) # game id is the index of autoplay runs
         return p0_score, p1_score, self.world.p0_time, self.world.p1_time
 
     def autoplay(self):
