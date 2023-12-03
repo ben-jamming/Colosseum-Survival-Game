@@ -5,7 +5,7 @@ from store import register_agent
 import numpy as np
 import time
 from .bitboard import BitBoard
-
+import csv
 
 from .alphabeta import AlphaBeta
 from .utils import utility, generate_children
@@ -23,12 +23,28 @@ class StudentAgent(Agent):
         self.dynamic_policy = dynamic_policy
         self.strategy = strategy
         self.kwargs = kwargs
+        self.turn_number = 0
         self.dir_map = {
             "u": 0,
             "r": 1,
             "d": 2,
             "l": 3,
         }
+
+    def _write_turn_data_to_csv(self, game_id, turn_data):
+        """
+        Added a method to save turn data to a csv
+        """
+        filename = f"game_{game_id}_turn_data.csv"
+        # write turn data into csv in turn_data folder
+        with open(f'turn_data/{filename}', 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            if csvfile.tell() == 0:
+                writer.writerow(["turn_data","turn_number","board_number","max_step",
+                                 "player_pos", "adversary_pos", "board_utility",
+                                 "time_taken", "chosen_action"])
+            
+            writer.writerow(turn_data)
 
     def step(self, chess_board, my_pos, adv_pos, max_step):
         """
@@ -97,14 +113,20 @@ class StudentAgent(Agent):
         else:
             raise ValueError("Invalid strategy")
 
-
+        self.turn_number+=1
         time_taken = time.time() - start_time
+        game_id = f"{self.turn_number}_{self.name}_vs_p2"
+        turn_data = [
+            game_id, self.turn_number, board_number, max_step,
+              my_pos, adv_pos, utility(chess_board), time_taken, new_action
+        ]
+        self._write_turn_data_to_csv(game_id, turn_data)
         
-        #print("My MCTS AI's turn took ", time_taken, "seconds.")
+        print(f"{self.name}", time_taken, "seconds.")
         # print chosen action
-        print("My MCTS AI's action: ", new_action)
+        #print("My MCTS AI's action: ", new_action)
         # print walls at that cell
-        print("Walls at that cell: ", chess_board[new_action[0][0], new_action[0][1], 0:4])
+        #print("Walls at that cell: ", chess_board[new_action[0][0], new_action[0][1], 0:4])
 
 
         return new_action

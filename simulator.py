@@ -78,36 +78,19 @@ class Simulator:
             display_save_path=self.args.display_save_path,
             autoplay=self.args.autoplay,
         )
-    def _write_turn_data_to_csv(self, game_id, turn_data):
-        """
-        Added a method to save turn data to a csv
-        """
-        filename = f"game_{game_id}_turn_data.csv"
-        # write turn data into csv in turn_data folder
-        with open(f'turn_data/{filename}', 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['turn_number', 'turn_time'])
-            for turn in turn_data:
-                writer.writerow([turn[0], turn[1]])
 
-
-    def run(self, game_id="not_auto_played", swap_players=False, board_size=None):
+    def run(self, swap_players=False, board_size=None):
         self.reset(swap_players=swap_players, board_size=board_size)
         turn_data = []
         turn_number = 0
         is_end, p0_score, p1_score = self.world.step()
 
         while not is_end:
-            start_time = time.time()
             is_end, p0_score, p1_score = self.world.step()
-            turn_time = time.time() - start_time
-            turn_data.append((turn_number, turn_time))
             turn_number += 1
         # logger.info(
         #     f"Run finished. Player {PLAYER_1_NAME}: {p0_score}, Player {PLAYER_2_NAME}: {p1_score}"
         # )
-
-        #self._write_turn_data_to_csv(game_id, turn_data) # game id is the index of autoplay runs
         return p0_score, p1_score, self.world.p0_time, self.world.p1_time
 
     def autoplay(self):
@@ -130,9 +113,8 @@ class Simulator:
                 print(f"===================Match #{i}===================")
                 swap_players = i % 2 == 0
                 board_size = np.random.randint(self.args.board_size_min, self.args.board_size_max)
-                game_id = f"{i}_{self.args.player_1}_vs_{self.args.player_2}"
                 p0_score, p1_score, p0_time, p1_time = self.run(
-                    game_id=game_id, swap_players=swap_players, board_size=board_size
+                    swap_players=swap_players, board_size=board_size
                 )
                 if swap_players:
                     p0_score, p1_score, p0_time, p1_time = (
