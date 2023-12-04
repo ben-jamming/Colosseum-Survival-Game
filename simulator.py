@@ -1,4 +1,5 @@
 import queue
+import imp
 from world import World, PLAYER_1_NAME, PLAYER_2_NAME
 import argparse
 from utils import all_logging_disabled
@@ -7,6 +8,7 @@ from tqdm import tqdm
 import numpy as np
 import csv
 import time
+import json
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 
@@ -110,7 +112,7 @@ class Simulator:
             p0_avg_score = 0
             p1_avg_score = 0
             for i in tqdm(range(self.args.autoplay_runs)):
-                print(f"===================Match #{i}===================")
+                #print(f"===================Match #{i}===================")
                 swap_players = i % 2 == 0
                 board_size = np.random.randint(self.args.board_size_min, self.args.board_size_max)
                 p0_score, p1_score, p0_time, p1_time = self.run(
@@ -139,9 +141,18 @@ class Simulator:
             p0_avg_score = p1_avg_score / self.args.autoplay_runs
             p_0_max_time = np.round(np.max(p1_times),5)
             p_1_max_time = np.round(np.max(p2_times),5)
-            #print([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs])
-            self.queue.put([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs, board_size])
-
+            p_1_median_time = np.round(np.median(p2_times),5)
+            p_0_median_time = np.round(np.median(p1_times),5)
+            if self.queue:
+                self.queue.put([self.args.player_1, self.args.player_2, p0_avg_score, p1_avg_score, p_0_max_time, p_1_max_time, p1_win_count, p2_win_count, p1_win_count * 100 / self.args.autoplay_runs, p2_win_count * 100 / self.args.autoplay_runs, board_size, p_0_median_time, p_1_median_time])
+            else:
+                print(f"Player {self.args.player_1} win percentage: {p1_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p1_times),5)} seconds.")
+                print(f"Player {self.args.player_2} win percentage: {p2_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p2_times),5)} seconds.")
+                print(f"Player {self.args.player_1} median turn time was {np.round(np.median(p1_times),5)} seconds.")
+                print(f"Player {self.args.player_2} median turn time was {np.round(np.median(p2_times),5)} seconds.")
+                print(f"Player {self.args.player_1} average score was {np.round(p0_avg_score,5)}")
+                print(f"Player {self.args.player_2} average score was {np.round(p1_avg_score,5)}")
+                print(f"Board size was {board_size}")
         # logger.info(
         #     f"Player {PLAYER_1_NAME} win percentage: {p1_win_count / self.args.autoplay_runs}. Maximum turn time was {np.round(np.max(p1_times),5)} seconds.")
         # logger.info(
@@ -153,7 +164,11 @@ if __name__ == "__main__":
     import os
     if not os.path.exists('turn_data'):
         os.makedirs('turn_data')
-    simulator = Simulator(args)
+    with open('agents/agent_configurations.json', 'r') as file:
+        config = json.load(file)
+
+    players = [agent['name'] for agent in config['agents']]
+    simulator = Simulator(players,args)
     if args.autoplay:
         simulator.autoplay()
     else:

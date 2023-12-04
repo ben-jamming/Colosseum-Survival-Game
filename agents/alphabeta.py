@@ -1,6 +1,16 @@
+from sqlite3 import Time
+from tracemalloc import start
 from .utils import perform_action, undo_last_action, simple_territory_search
 import time
 import numpy as np
+import signal
+
+
+def TimeLimitExceeded(Exception):
+    pass
+
+def handler(signum, frame):
+    raise TimeLimitExceeded("Time limit exceeded")
 
 class AlphaBeta:
     
@@ -17,6 +27,7 @@ class AlphaBeta:
         children returned from generate children is a list of actiosn
         actions are (position, wall_direction)
         """
+        
         start_time = time.time()
         iterations = 0
 
@@ -34,17 +45,17 @@ class AlphaBeta:
             # if max_player = True, then we are maximizing player
             current_time = time.time()
             if current_time - start_time > time_limit:
-                return utility(cur_state)
+                return utility(cur_state,current_time, start_time)
 
             if depth == max_depth:
-                return utility(cur_state)
+                return utility(cur_state,current_time, start_time)
             
-            children = generate_children(cur_state)
+            children = generate_children(cur_state, start_time, time_limit)
             children.sort(key=child_heuristic)
             children = children[:int(breadth_limit/depth)]
             
             if not children:
-                return utility(cur_state)
+                return utility(cur_state, current_time, start_time)
             
             max_player = cur_state['is_player_turn']
 
@@ -55,6 +66,8 @@ class AlphaBeta:
             for child in children:
                 
                 perform_action(cur_state, child)
+                if current_time - start_time > time_limit:
+                    break                
                 val = minimax(cur_state, depth + 1, alpha, beta)
                 if current_time - start_time > time_limit:
                     break
@@ -73,43 +86,61 @@ class AlphaBeta:
 
 
         # get the move that maximizes the utility
-        children = generate_children(state)
+        children = generate_children(state, start_time, time_limit)
         # sort each child by its distance from the player
             
         # the sort function sorts in 
         children.sort(key=child_heuristic)
         children = children[:breadth_limit]
-
-            
-
         max_child = children[0]
         max_val = float('-inf')
-        for child in children:
-            perform_action(state, child)
-            child_val = minimax(state, 1, float('-inf'), float('inf'))
-            undo_last_action(state)
-            if child_val > max_val:
-                max_val = child_val
-                max_child = child
-        
-        def get_utility(move):
-            perform_action(state, move)
-            val = utility(state)
-            undo_last_action(state)
-            return val
-        
-        #print(f'chosen action: {max_child}, val: {max_val}, utility: {get_utility(max_child)}')
-        if max_val == -1:
+
+        try:
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(int(time_limit))
             for child in children:
                 perform_action(state, child)
-                child_val = utility(state)
+                child_val = minimax(state, 1, float('-inf'), float('inf'))
+                #child_val = float('-inf')
                 undo_last_action(state)
                 if child_val > max_val:
                     max_val = child_val
                     max_child = child
-            print(f'chosen action: {max_child}, val: {max_val} utility: {get_utility(max_child)}')
+
+            signal.alarm(0)
+
+        except TimeLimitExceeded:
+            # Pick the best move available
+            for child in children:
+                perform_action(state, child)
+                child_val = utility(state, start_time, time_limit)
+                undo_last_action(state)
+                if child_val > max_val:
+                    max_val = child_val
+                    max_child = child
         
-        print('iterations: ', iterations)
+        def get_utility(move):
+            perform_action(state, move)
+            val = utility(state, start_time, time_limit)
+            undo_last_action(state)
+            return val
+        
+        #print(f'chosen action: {max_child}, val: {max_val}, utility: {get_utility(max_child)}')
+        if time.time() - start_time > time_limit:
+            print("TIME LIMIT EXCEEDED")
+            return max_child
+        
+        if max_val == -1:
+            for child in children:
+                perform_action(state, child)
+                child_val = utility(state, start_time, time_limit)
+                undo_last_action(state)
+                if child_val > max_val:
+                    max_val = child_val
+                    max_child = child
+            #print(f'chosen action: {max_child}, val: {max_val} utility: {get_utility(max_child)}')
+        
+        #print('iterations: ', iterations)
 
 
         

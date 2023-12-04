@@ -1,9 +1,0 @@
-turn_data,turn_number,board_number,wall_count,max_step,player_pos,adversary_pos,board_utility,time_taken,chosen_action
-3_AB_Dpth_3_Brth_400_dpFalse_vs_p2,3,"1001 1010 1000 1010 1000 1100 
-0001 1000 0000 1000 0000 0100 
-0001 0000 0100 0001 0100 0101 
-0101 0011 0000 0100 0001 0100 
-0001 1000 0000 0000 0010 0100 
-0011 0010 0010 0010 1010 0110 
-
-",10,3,"(2, 2)","(3, 3)",-0.16666666666666666,12.584137439727783,"((3, 2), 1)"

@@ -128,7 +128,7 @@ def generate_random_board(n):
     return board
 
 
-def display_board(board):
+def display_board(board, p1_pos, p2_pos):
     """
     a bord is a grid of cells with 4 walls each
     we want to display each cell with its walls
@@ -143,7 +143,10 @@ def display_board(board):
         for x in range(n):
             # rect = plt.Rectangle((x, y), 1, 1, facecolor='none', edgecolor='gray')
             # ax.add_patch(rect)
-
+            if (y,x) == p1_pos:
+                ax.plot(x + 0.5, y + 0.5, 'o', color='red')
+            elif (y,x) == p2_pos:
+                ax.plot(x + 0.5, y + 0.5, 'o', color='blue')
             if board[y, x, 0]:
                 ax.plot([x, x + 1], [y, y], color=wall_color)
             if board[y, x, 1]:
@@ -189,11 +192,11 @@ if __name__ == "__main__":
     print("numpy array time: ", end - start)
 
 
-    boardnum = 8734470310847083694450306179975730550608153
-    board = BitBoard(n=6)
+    boardnum = 44927164553319971983469414882097971678680713827263269723020930945102462081023279244928282577703452953389934283217773466389467428314171492801778075
+    board = BitBoard(n=11)
     board.board = boardnum
-
+    
 
     board = board.to_array()
-    display_board(board)
+    display_board(board,(4, 6),(7, 6))
     plt.show()

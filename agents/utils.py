@@ -1,16 +1,56 @@
 import heapq
 from collections import deque
 import random
-from functools import lru_cache
+from tracemalloc import start
+import time
 
-@lru_cache(maxsize=100000)
+import numpy as np
+from collections import OrderedDict
+import functools
+
+class LRUCache:
+    def __init__(self, maxsize):
+        self.cache = OrderedDict()
+        self.maxsize = maxsize
+
+    def get(self, key):
+        if key in self.cache:
+            self.cache.move_to_end(key)
+            return self.cache[key]
+        return None
+
+    def set(self, key, value):
+        self.cache[key] = value
+        self.cache.move_to_end(key)
+        if len(self.cache) > self.maxsize:
+            self.cache.popitem(last=False)
+
+def lru_cache(maxsize=128):
+    cache = LRUCache(maxsize)
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            key = args + tuple(sorted(kwargs.items()))
+            result = cache.get(key)
+            if result is not None:
+                return result
+            result = func(*args, **kwargs)
+            cache.set(key, result)
+            return result
+
+        return wrapper
+    return decorator
+
+#@lru_cache(maxsize=500)
+@lru_cache(maxsize=500)
 def h(current, adversary):
 
     dist =  (current[0] - adversary[0])**2 + (current[1] - adversary[1])**2
     # rount to 2 decimal places
     return dist
 
-@lru_cache(maxsize=600)
+@lru_cache(maxsize=3000)
 def get_adjacent_moves(position, walls,
                        obstacle=None,
                        ):
@@ -29,9 +69,6 @@ def get_adjacent_moves(position, walls,
             moves.append((nx, ny))
     return moves
 
-
-
-    
 
 def is_terminal(state, jump_point_search=False):
     """
@@ -103,8 +140,8 @@ def count_closest_cells(adversary_distances, player_distances):
 
     return closest_cells
 
-@lru_cache(maxsize=1000000)
-def simple_territory_search(board, player, adversary, max_step):
+@lru_cache(maxsize=1000)
+def simple_territory_search(board, player, adversary, max_step, start_time, time_limit):
     """
     Do a bfs from both the player and the adversary and get their distance to every square
     in the players reachable positions 
@@ -116,10 +153,14 @@ def simple_territory_search(board, player, adversary, max_step):
     player_dists = get_possible_positions(board,
                                           max_step,
                                           player,
+                                          start_time,
+                                          time_limit,
                                            depth_limited=False)
     adversary_dists = get_possible_positions(board,
                                               max_step,
                                               adversary,
+                                                start_time,
+                                                time_limit,
                                               depth_limited=False)
 
 
@@ -149,7 +190,7 @@ def simple_territory_search(board, player, adversary, max_step):
 
     return player_territory, adversary_territory, overlap
 
-def utility(state):
+def utility(state, start_time, time_limit):
     """
     The utility of the board is used to mark how good the board is for the player
     There are a couple metrics we can use to determine the utility of the board
@@ -180,7 +221,8 @@ def utility(state):
 
     # return the euclidean distance between the player and the adversary
 
-    p_t, a_t, overlap = simple_territory_search(state['board'], state['player'], state['adversary'], state['max_step'])
+    p_t, a_t, overlap = simple_territory_search(state['board'], state['player'], state['adversary'], state['max_step'],
+                                                start_time, time_limit)
     if len(overlap) == 0:
         player_score = len(p_t)
         adversary_score = len(a_t)
@@ -195,13 +237,16 @@ def utility(state):
     if point_p == 0 and point_a == 0:
         return 0
     win_priority_scaler = 0.5
-    return ((point_p - point_a) / (point_p + point_a))  * win_priority_scaler    
+    return ((point_p - point_a) / (point_p + point_a))  * win_priority_scaler 
+    #return ((state['player'][0] - state['adversary'][0])**2 + (state['player'][1] - state['adversary'][1])**2)
 
 
-@lru_cache(maxsize=1000000)
+@lru_cache(maxsize=10000)
 def get_possible_positions(board,
                            max_step,
                            position,
+                           start_time,
+                           time_limit,
                            depth_limited=True,
                            obstacle=None
                            ):
@@ -239,6 +284,8 @@ def get_possible_positions(board,
     queue.append(init_pos)
 
     while (len(queue) > 0):
+        if time.time() - start_time > time_limit:
+            return distances
         u = queue.popleft()
         if distances[u] >= max_step - 1 and depth_limited:
             continue
@@ -252,7 +299,7 @@ def get_possible_positions(board,
 
     return distances
 
-def get_possible_moves(state):
+def get_possible_moves(state, start_time, time_limit):
     """
     This uses all the possible positions to get the possible moves
     A possible move is a position you can go where you can place a wall
@@ -267,25 +314,26 @@ def get_possible_moves(state):
     blocker = state['player'] 
     if state['is_player_turn']:
         pos = state['player'] 
-        blocker = state['adversary'] 
-    possible_positions = get_possible_positions(state['board'],state['max_step'], pos, obstacle=blocker)
-    
+        blocker = state['adversary']
+    possible_positions = get_possible_positions(state['board'],state['max_step'], pos, start_time, time_limit, obstacle=blocker)
     possible_moves = []
     for position in possible_positions:
         x = position[0]
         y = position[1]
+        if time.time() - start_time > time_limit:
+            break
         for i in range(4):
             if state['board'][x,y,i]:
                 continue
             possible_moves.append((position, i))
     return possible_moves
 
-def generate_children(state):
+def generate_children(state, start_time, time_limit):
     """
     This generates the children of a given state
     An action that mutates the state of the board
     """
-    possible_moves = get_possible_moves(state)
+    possible_moves = get_possible_moves(state, start_time, time_limit)
     return possible_moves
 
 def perform_action(state, action):

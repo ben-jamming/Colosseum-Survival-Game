@@ -35,12 +35,12 @@ class StudentAgent(Agent):
         """
         Added a method to save turn data to a csv
         """
-        filename = f"game_{game_id}_turn_data.csv"
+        filename = f"tournament_turn_data.csv"
         # write turn data into csv in turn_data folder
-        with open(f'turn_data/{filename}', 'w', newline='') as csvfile:
+        with open(f'turn_data/{filename}', 'a+', newline='\n') as csvfile:
             writer = csv.writer(csvfile)
             if csvfile.tell() == 0:
-                writer.writerow(["turn_data","turn_number","board_number", "wall_count", "max_step",
+                writer.writerow(["game_id","turn_number","board_number", "wall_count", "max_step",
                                  "player_pos", "adversary_pos", "board_utility",
                                  "time_taken", "chosen_action"])
             
@@ -108,21 +108,21 @@ class StudentAgent(Agent):
                 self.kwargs.get('breadth_limit',400),
             )
         elif self.strategy == "Random":
-            new_action = generate_children(state)[np.random.randint(len(generate_children(state)))]
+            new_action = generate_children(state,start_time,self.kwargs.get('time_limit',1.0))[np.random.randint(len(generate_children(state, start_time,self.kwargs.get('time_limit',1.0))))]
             
         else:
             raise ValueError("Invalid strategy")
 
         self.turn_number+=1
         time_taken = time.time() - start_time
-        game_id = f"{self.turn_number}_{self.name}_vs_p2"
+        game_id = f"{self.name}_vs_p2"
         turn_data = [
-            game_id, self.turn_number, board_number, wall_count, max_step,
-              my_pos, adv_pos, utility(state), time_taken, new_action
+            game_id, self.turn_number, board_number.board, wall_count, max_step,
+              my_pos, adv_pos, utility(state, start_time, self.kwargs.get('time_limit',1.0)), time_taken, new_action
         ]
         self._write_turn_data_to_csv(game_id, turn_data)
         
-        print(f"{self.name}", time_taken, "seconds.")
+        #print(f"{self.name}", time_taken, "seconds.")
         # print chosen action
         #print("My MCTS AI's action: ", new_action)
         # print walls at that cell

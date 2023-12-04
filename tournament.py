@@ -18,7 +18,7 @@ class Tournament:
             cls._instance = super(Tournament, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, players, runs_per_match=10, display_results=False):
+    def __init__(self, players, runs_per_match=5, display_results=False):
         self.players = players
         self.runs_per_match = runs_per_match
         self.display_results = display_results
@@ -33,7 +33,7 @@ class Tournament:
                     writer.writerow(['p1', 'p2', 
                                     'p1_avg_score', 'p2_avg_score', 
                                     'p1_max_time', 'p2_max_time', 
-                                    'p1_wins', 'p2_wins', 'p1_win_pct', 'p2_win_pct', 'board_size'])                         
+                                    'p1_wins', 'p2_wins', 'p1_win_pct', 'p2_win_pct', 'board_size', 'p1_median_time', 'p2_median_time'])                         
                 while True:
                     result = queue.get()
                     print("Received data from queue:", result)  # New line for debugging
@@ -68,6 +68,24 @@ class Tournament:
             queue.put("DONE")
             writer_proc.join()     
 
+    def run_single_match(self, player1, player2):
+        """Runs a single match between two players."""
+        args = argparse.Namespace(
+            player_1=player1,
+            player_2=player2,
+            board_size=12, # This is just a default
+            board_size_min=6,
+            board_size_max=12,
+            display=False,
+            display_delay=0.4,
+            display_save=False,
+            display_save_path="plots/",
+            autoplay=True,
+            autoplay_runs=self.runs_per_match
+        )
+        simulator = Simulator(args)
+        simulator.autoplay()
+
     def _run_simulation(self, player1, player2, queue):
         """Initiates a set of games between two players."""
         args = argparse.Namespace(
@@ -83,6 +101,7 @@ class Tournament:
             autoplay=True,
             autoplay_runs=self.runs_per_match
         )
+        print("Running simulation between", player1, "and", player2)
         simulator = Simulator(args, queue)
         simulator.autoplay()
 
@@ -90,6 +109,7 @@ if __name__ == "__main__":
     with open('agents/agent_configurations.json', 'r') as file:
         config = json.load(file)
         players = [agent['name'] for agent in config['agents']]
-        
+    
     tournament = Tournament(players, display_results=True)
     tournament.run()
+    #tournament.run_single_match("AB_Dpth_2_Brth_25_dpFalse", "AB_Dpth_2_Brth_25_dpFalse")

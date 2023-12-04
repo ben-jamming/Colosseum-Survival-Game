@@ -48,6 +48,28 @@ class TournamentVisualizer:
         plt.show()
 
     @staticmethod
+    def plot_turn_number_vs_time_taken_for_each_game(file_path):
+        df = pd.read_csv(file_path)
+        df.columns = ['game_id', 'turn_number', 'board', 'wall_count', 'max_step', 'player_pos', 'adv_pos', 'utility', 'time_taken', 'action']
+        df = df[['game_id', 'turn_number', 'time_taken']]
+
+        # Normalize turn_number as a percentage of the game
+        max_turn_per_game = df.groupby('game_id')['turn_number'].max().reset_index()
+        max_turn_per_game.rename(columns={'turn_number': 'max_turn_number'}, inplace=True)
+        df = df.merge(max_turn_per_game, on='game_id')
+        df['normalized_turn'] = df['turn_number'] / df['max_turn_number']
+
+        grouped = df.groupby('game_id')
+        for game_id, group in grouped:
+            plt.figure()
+            plt.scatter(group['normalized_turn'], group['time_taken'])
+            plt.title(f'Turn Number vs Time Taken for Game {game_id}')
+            plt.xlabel('Normalized Turn Number')
+            plt.ylabel('Time Taken')
+            plt.show()
+
+
+    @staticmethod
     def plot_turn_data(file_path):
         turn_numbers = []
         turn_times = []
@@ -160,10 +182,11 @@ class TournamentVisualizer:
         plt.show()
 
 if __name__ == "__main__":
-    csv_file = 'simulation_results.csv'  # Replace with the path to your CSV file
-    TournamentVisualizer.visualize_score_heatmap(csv_file)
-    TournamentVisualizer.visualize_total_wins(csv_file)
-    TournamentVisualizer.visualize_max_match_duration(csv_file)
+    # csv_file = 'simulation_results.csv'  # Replace with the path to your CSV file
+    # TournamentVisualizer.visualize_score_heatmap(csv_file)
+    # TournamentVisualizer.visualize_total_wins(csv_file)
+    # TournamentVisualizer.visualize_max_match_duration(csv_file)
     #TournamentVisualizer.plot_turn_data('game_not_auto_played_A_vsB_turn_data.csv')
     # game_data = [f"turn_data/game_{i}_student_agent_vs_alpha_agent_turn_data.csv" for i in range(12)]
     # TournamentVisualizer.plot_average_turn_time(game_data)
+    TournamentVisualizer.plot_turn_number_vs_time_taken_for_each_game('turn_data/tournament_turn_data.csv')
