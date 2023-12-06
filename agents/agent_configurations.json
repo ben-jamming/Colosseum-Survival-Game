@@ -1,22 +1,82 @@
 {
     "agents": [
         {
-            "name": "AB_Dpth_2_Brth_25_dpFalse",
+            "name": "AB_Dpth_2_Brth_250_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 25,
-                "time_limit": 0.3,
+                "breadth_limit": 250,
+                "time_limit": 1.0,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_35_dpFalse",
+            "name": "AB_Dpth_2_Brth_350_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 35,
-                "time_limit": 0.3,
+                "breadth_limit": 350,
+                "time_limit": 1.0,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_2_Brth_450_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 450,
+                "time_limit": 1.0,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_2_Brth_550_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 550,
+                "time_limit": 1.0,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_2_Brth_650_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 650,
+                "time_limit": 1.0,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_2_Brth_750_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 750,
+                "time_limit": 1.0,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_2_Brth_850_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 850,
+                "time_limit": 1.0,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_2_Brth_950_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 950,
+                "time_limit": 1.0,
                 "dynamic_policy": false
             }
         }

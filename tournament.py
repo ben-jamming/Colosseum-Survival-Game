@@ -18,7 +18,7 @@ class Tournament:
             cls._instance = super(Tournament, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, players, runs_per_match=5, display_results=False):
+    def __init__(self, players, runs_per_match=10, display_results=False):
         self.players = players
         self.runs_per_match = runs_per_match
         self.display_results = display_results
@@ -55,9 +55,10 @@ class Tournament:
             queue = manager.Queue()
             writer_proc = Process(target=self.writer_process, args=(queue,))
             writer_proc.start()
-            simulations = [(player1, player2, queue) for player1, player2 in itertools.combinations_with_replacement(self.players, 2)]
+            simulations = [(player1, player2, queue, number) 
+                       for number, (player1, player2) 
+                       in enumerate(itertools.combinations_with_replacement(self.players, 2), start=1)]
             
-
             # IMPORTANT
             # MAKE THIS WHATEVER THE MAXIMUM NUMBER OF THREADS
             # YOU THINK YOU CAN HANDLE IS
@@ -86,7 +87,7 @@ class Tournament:
         simulator = Simulator(args)
         simulator.autoplay()
 
-    def _run_simulation(self, player1, player2, queue):
+    def _run_simulation(self, player1, player2, queue, number):
         """Initiates a set of games between two players."""
         args = argparse.Namespace(
             player_1=player1,
@@ -101,7 +102,7 @@ class Tournament:
             autoplay=True,
             autoplay_runs=self.runs_per_match
         )
-        print("Running simulation between", player1, "and", player2)
+        print(f"Running simulation between {number}", player1, "and", player2)
         simulator = Simulator(args, queue)
         simulator.autoplay()
 

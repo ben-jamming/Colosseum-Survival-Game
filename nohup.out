@@ -1,32 +1,0 @@
-Registering agent 'random_agent'
-Registering agent 'human_agent'
-Registering agent 'student_agent'
-Registering agent 'AB_Dpth_1_Brth_400_dpFalse'
-Registering agent 'AB_Dpth_1_Brth_500_dpFalse'
-Registering agent 'AB_Dpth_1_Brth_600_dpFalse'
-Registering agent 'AB_Dpth_1_Brth_700_dpFalse'
-Registering agent 'AB_Dpth_1_Brth_800_dpFalse'
-Registering agent 'AB_Dpth_1_Brth_900_dpFalse'
-Registering agent 'AB_Dpth_1_Brth_1000_dpFalse'
-Registering agent 'AB_Dpth_2_Brth_400_dpFalse'
-Registering agent 'AB_Dpth_2_Brth_500_dpFalse'
-Registering agent 'AB_Dpth_2_Brth_600_dpFalse'
-Registering agent 'AB_Dpth_2_Brth_700_dpFalse'
-Registering agent 'AB_Dpth_2_Brth_800_dpFalse'
-Registering agent 'AB_Dpth_2_Brth_900_dpFalse'
-Registering agent 'AB_Dpth_2_Brth_1000_dpFalse'
-Registering agent 'AB_Dpth_3_Brth_400_dpFalse'
-Registering agent 'AB_Dpth_3_Brth_500_dpFalse'
-Registering agent 'AB_Dpth_3_Brth_600_dpFalse'
-Registering agent 'AB_Dpth_3_Brth_700_dpFalse'
-Registering agent 'AB_Dpth_3_Brth_800_dpFalse'
-Registering agent 'AB_Dpth_3_Brth_900_dpFalse'
-Registering agent 'AB_Dpth_3_Brth_1000_dpFalse'
-Registering agent 'AB_Dpth_4_Brth_400_dpFalse'
-Registering agent 'AB_Dpth_4_Brth_500_dpFalse'
-Registering agent 'AB_Dpth_4_Brth_600_dpFalse'
-Registering agent 'AB_Dpth_4_Brth_700_dpFalse'
-Registering agent 'AB_Dpth_4_Brth_800_dpFalse'
-Registering agent 'AB_Dpth_4_Brth_900_dpFalse'
-Registering agent 'AB_Dpth_4_Brth_1000_dpFalse'
-  0%|          | 0/10 [00:00<?, ?it/s]  0%|          | 0/10 [00:00<?, ?it/s]  0%|          | 0/10 [00:00<?, ?it/s]  0%|          | 0/10 [00:00<?, ?it/s]  0%|          | 0/10 [00:00<?, ?it/s]  0%|          | 0/10 [00:00<?, ?it/s]  0%|          | 0/10 [00:00<?, ?it/s]  0%|          | 0/10 [00:00<?, ?it/s] 10%|█         | 1/10 [00:22<03:19, 22.18s/it] 10%|█         | 1/10 [00:32<04:55, 32.88s/it] 10%|█         | 1/10 [00:32<04:56, 32.99s/it] 10%|█         | 1/10 [00:34<05:06, 34.09s/it] 10%|█         | 1/10 [00:34<05:07, 34.21s/it] 10%|█         | 1/10 [00:48<07:16, 48.50s/it] 20%|██        | 2/10 [00:49<03:21, 25.14s/it] 10%|█         | 1/10 [00:49<07:29, 49.99s/it] 10%|█         | 1/10 [00:49<07:29, 49.99s/it] 30%|███       | 3/10 [00:58<02:05, 17.90s/it] 40%|████      | 4/10 [01:07<01:25, 14.19s/it] 20%|██        | 2/10 [01:14<05:02, 37.76s/it] 20%|██        | 2/10 [01:15<05:07, 38.42s/it] 20%|██        | 2/10 [01:17<05:14, 39.37s/it] 20%|██        | 2/10 [01:17<05:15, 39.44s/it] 30%|███       | 3/10 [01:33<03:24, 29.28s/it] 30%|███       | 3/10 [01:34<03:28, 29.78s/it] 30%|███       | 3/10 [01:35<03:28, 29.84s/it] 30%|███       | 3/10 [01:36<03:30, 30.12s/it] 20%|██        | 2/10 [01:48<07:18, 54.82s/it] 20%|██        | 2/10 [01:48<07:22, 55.26s/it] 50%|█████     | 5/10 [01:53<02:07, 25.59s/it] 20%|██        | 2/10 [01:53<07:42, 57.82s/it] 40%|████      | 4/10 [02:11<03:15, 32.51s/it] 40%|████      | 4/10 [02:11<03:16, 32.81s/it] 40%|████      | 4/10 [02:15<03:23, 33.89s/it] 40%|████      | 4/10 [02:16<03:25, 34.18s/it] 60%|██████    | 6/10 [02:18<01:42, 25.56s/it] 30%|███       | 3/10 [02:32<05:51, 50.26s/it] 30%|███       | 3/10 [02:34<05:57, 51.07s/it] 30%|███       | 3/10 [02:38<06:06, 52.29s/it] 40%|████      | 4/10 [03:16<04:44, 47.48s/it] 50%|█████     | 5/10 [03:41<04:21, 52.25s/it] 50%|█████     | 5/10 [03:42<04:25, 53.09s/it] 70%|███████   | 7/10 [03:49<02:20, 46.92s/it] 40%|████      | 4/10 [03:55<06:16, 62.73s/it] 40%|████      | 4/10 [04:10<06:45, 67.57s/it] 60%|██████    | 6/10 [10:37<11:44, 176.01s/it]

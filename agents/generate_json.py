@@ -4,9 +4,9 @@ import itertools
 def generate_agent_configs():
     max_depths = range(2, 3, 1)
     simulation_depths = range(50, 200, 50)
-    time_limits = [0.3]
+    time_limits = [1.0]
     exploration_constants = [0.5, 1.0, 1.5]
-    breadth_limits = range(25, 36, 10)
+    breadth_limits = range(250, 951, 100)
     dynamic_policies = [False]
     agents = []
 
