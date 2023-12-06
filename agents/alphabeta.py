@@ -1,10 +1,9 @@
 from sqlite3 import Time
 from tracemalloc import start
-from .utils import perform_action, undo_last_action, simple_territory_search
-import time
+from .utils import *
 import numpy as np
 import signal
-
+from memory_profiler import profile
 
 def TimeLimitExceeded(Exception):
     pass
@@ -12,10 +11,12 @@ def TimeLimitExceeded(Exception):
 def handler(signum, frame):
     raise TimeLimitExceeded("Time limit exceeded")
 
+
+
 class AlphaBeta:
     
 
-
+    @profile
     def get_action(generate_children, 
                    utility, 
                    state, 
@@ -118,7 +119,7 @@ class AlphaBeta:
                 if child_val > max_val:
                     max_val = child_val
                     max_child = child
-        
+
         def get_utility(move):
             perform_action(state, move)
             val = utility(state, start_time, time_limit)

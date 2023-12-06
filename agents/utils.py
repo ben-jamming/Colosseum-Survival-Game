@@ -43,14 +43,44 @@ def lru_cache(maxsize=128):
     return decorator
 
 #@lru_cache(maxsize=500)
-@lru_cache(maxsize=500)
 def h(current, adversary):
 
     dist =  (current[0] - adversary[0])**2 + (current[1] - adversary[1])**2
     # rount to 2 decimal places
     return dist
 
-@lru_cache(maxsize=3000)
+# @lru_cache(maxsize=2000)
+# def get_adjacents(position, walls):
+#     """
+#     This returns the list of directly adjacent positions to a given position
+#     Taking into account the walls
+#     """
+
+#     moves = []
+#     deltas = [((-1, 0), 0), ((0, 1), 1), ((1, 0), 2), ((0, -1), 3)]
+#     x = position[0]
+#     y = position[1]
+#     for delta, i in deltas:
+#         nx, ny = x + delta[0], y + delta[1]
+#         if not walls[i]:
+#             moves.append((nx, ny))
+#     return moves
+
+# def get_adjacent_moves(position, walls,
+#                        obstacle=None,
+#                        ):
+#     """
+#     This returns the list of directly adjacent positions to a given position
+#     Taking into account the walls and the adversary
+#     """
+#     moves = get_adjacents(position, walls)
+#     if obstacle and (abs(obstacle[0] - position[0] <= 1) and abs(obstacle[1] - position[1] <= 1)):
+#         # remove x,y from moves if its in it
+#         moves = [move for move in moves if move != obstacle]
+#         return moves
+#     else:
+#         return moves
+#@lru_cache(maxsize=200)
 def get_adjacent_moves(position, walls,
                        obstacle=None,
                        ):
@@ -140,7 +170,7 @@ def count_closest_cells(adversary_distances, player_distances):
 
     return closest_cells
 
-@lru_cache(maxsize=1000)
+#@lru_cache(maxsize=100)
 def simple_territory_search(board, player, adversary, max_step, start_time, time_limit):
     """
     Do a bfs from both the player and the adversary and get their distance to every square
@@ -241,7 +271,7 @@ def utility(state, start_time, time_limit):
     #return ((state['player'][0] - state['adversary'][0])**2 + (state['player'][1] - state['adversary'][1])**2)
 
 
-@lru_cache(maxsize=10000)
+#@lru_cache(maxsize=200)
 def get_possible_positions(board,
                            max_step,
                            position,
@@ -439,3 +469,4 @@ def mcts_get_random_move(state):
                 random_move_found = True
                 return (move, i)
         count += 1
+

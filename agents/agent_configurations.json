@@ -1,21 +1,21 @@
 {
     "agents": [
         {
-            "name": "AB_Dpth_2_Brth_15_dpFalse",
-            "strategy": "AlphaBeta",
-            "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 15,
-                "time_limit": 0.3,
-                "dynamic_policy": false
-            }
-        },
-        {
             "name": "AB_Dpth_2_Brth_25_dpFalse",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
                 "breadth_limit": 25,
+                "time_limit": 0.3,
+                "dynamic_policy": false
+            }
+        },
+        {
+            "name": "AB_Dpth_2_Brth_35_dpFalse",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 35,
                 "time_limit": 0.3,
                 "dynamic_policy": false
             }

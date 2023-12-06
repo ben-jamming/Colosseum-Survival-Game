@@ -1,4 +1,6 @@
 # Student agent: Add your own agent here
+# import memory_profiler
+from memory_profiler import profile
 from agents.agent import Agent
 from agents.mcts import MCTS
 from store import register_agent
@@ -7,7 +9,7 @@ import time
 from .bitboard import BitBoard
 import csv
 
-from .alphabeta import AlphaBeta
+from .alphabeta import *
 from .utils import utility, generate_children
 
 @register_agent("student_agent")
@@ -45,7 +47,7 @@ class StudentAgent(Agent):
                                  "time_taken", "chosen_action"])
             
             writer.writerow(turn_data)
-
+    
     def step(self, chess_board, my_pos, adv_pos, max_step):
         """
         Implement the step function of your agent here.
