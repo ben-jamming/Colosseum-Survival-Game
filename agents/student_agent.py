@@ -1,323 +1,616 @@
-from agents .agent import Agent #line:1
-from store import register_agent #line:2
-import numpy as np #line:3
-import time #line:4
-from collections import deque #line:6
-import heapq #line:7
-from functools import lru_cache #line:8
-class BitBoard ():#line:10
-    def __init__ (O0O0O0000O000OO00 ,npboard =None ,n =12 ):#line:12
-        O0O0O0000O000OO00 .n =n #line:13
-        if npboard is not None :#line:14
-            O0O0O0000O000OO00 .n =npboard .shape [0 ]#line:15
-            O0O0O0000O000OO00 .from_array (npboard )#line:16
-    def bit_index (OO0OO0OOO00O0000O ,O0000OO0OOO00O0O0 ,O0OO0OO0O00O0O00O ,O000OOOO0O0O0O0O0 ):#line:18
-        return 4 *(OO0OO0OOO00O0000O .n *O0000OO0OOO00O0O0 +O0OO0OO0O00O0O00O )+O000OOOO0O0O0O0O0 #line:19
-    def from_array (O0O0OO0O0O0O0O0O0 ,OOO0OOO00OOO000OO ):#line:21
-        O0O00OOOO000OOO00 =OOO0OOO00OOO000OO .shape [0 ]#line:22
-        O0O0OO0O0O0O0O0O0 .board =0 #line:23
-        O0O0OO0O0O0O0O0O0 .n =O0O00OOOO000OOO00 #line:24
-        for OO00O000O0OOOO00O in range (O0O00OOOO000OOO00 ):#line:25
-            for OO00O0O0OO0OOOOO0 in range (O0O00OOOO000OOO00 ):#line:26
-                for O0O0OO0O00OO0O00O in range (4 ):#line:27
-                    if OOO0OOO00OOO000OO [OO00O000O0OOOO00O ,OO00O0O0OO0OOOOO0 ,O0O0OO0O00OO0O00O ]:#line:28
-                        O000O0OOOO0O0OOOO =O0O0OO0O0O0O0O0O0 .bit_index (OO00O000O0OOOO00O ,OO00O0O0OO0OOOOO0 ,O0O0OO0O00OO0O00O )#line:29
-                        O0O0OO0O0O0O0O0O0 .board |=(1 <<O000O0OOOO0O0OOOO )#line:30
-    def to_array (OOOOO0OO000O0000O ):#line:32
-        OO00OO0O000OOO0O0 =OOOOO0OO000O0000O .n #line:33
-        O0O000OO0OO00OOOO =np .zeros ((OO00OO0O000OOO0O0 ,OO00OO0O000OOO0O0 ,4 ),dtype =bool )#line:34
-        for OOO000O00000O000O in range (OO00OO0O000OOO0O0 ):#line:35
-            for O000OO000O00O000O in range (OO00OO0O000OOO0O0 ):#line:36
-                for O000OOOO0OO00OO00 in range (4 ):#line:37
-                    OOOOO0OO000OOOO0O =OOOOO0OO000O0000O .bit_index (OOO000O00000O000O ,O000OO000O00O000O ,O000OOOO0OO00OO00 )#line:38
-                    if (OOOOO0OO000O0000O .board &(1 <<OOOOO0OO000OOOO0O )):#line:39
-                        O0O000OO0OO00OOOO [OOO000O00000O000O ,O000OO000O00O000O ,O000OOOO0OO00OO00 ]=1 #line:40
-        return O0O000OO0OO00OOOO #line:41
-    def __getitem__ (O0000O00OOOOO0OO0 ,O0000000O0OOO00OO ):#line:43
-        OOOOOO00OO00OO000 ,O0O000OO00OO00000 ,OOO00OOOO000OO00O =O0000000O0OOO00OO #line:44
-        OOOOOO00OO00OO000 =int (OOOOOO00OO00OO000 )#line:45
-        O0O000OO00OO00000 =int (O0O000OO00OO00000 )#line:46
-        OO0000000OO0O00O0 =O0000O00OOOOO0OO0 .bit_index (OOOOOO00OO00OO000 ,O0O000OO00OO00000 ,OOO00OOOO000OO00O )#line:47
-        return (int (O0000O00OOOOO0OO0 .board )&int (1 <<OO0000000OO0O00O0 ))!=0 #line:48
-    def walls (O00O000O0OO0O0O0O ,O0OO0O0O00OO0O0O0 ):#line:50
-        OO0OOO00O00O0OOO0 ,O00O0OOO0O0O0OOOO =O0OO0O0O00OO0O0O0 #line:51
-        OO0OOO00O00O0OOO0 =int (OO0OOO00O00O0OOO0 )#line:52
-        O00O0OOO0O0O0OOOO =int (O00O0OOO0O0O0OOOO )#line:53
-        O00O000OO00O00O0O =4 *(O00O000O0OO0O0O0O .n *OO0OOO00O00O0OOO0 +O00O0OOO0O0O0OOOO )#line:54
-        O0O0O0000OOO00O00 =(O00O000O0OO0O0O0O .board >>O00O000OO00O00O0O )&0xF #line:55
-        return (bool (O0O0O0000OOO00O00 &1 ),bool (O0O0O0000OOO00O00 &2 ),bool (O0O0O0000OOO00O00 &4 ),bool (O0O0O0000OOO00O00 &8 ))#line:57
-    def __str__ (O0O00O0O0OO000OO0 )->str :#line:59
-        O00OOOOOO00OO00O0 =""#line:60
-        OO000O00O00O00OO0 =bin (O0O00O0O0OO000OO0 .board )[2 :]#line:61
-        OO000O00O00O00OO0 ="0"*(4 *O0O00O0O0OO000OO0 .n *O0O00O0O0OO000OO0 .n -len (OO000O00O00O00OO0 ))+OO000O00O00O00OO0 #line:62
-        for O00O00000O0000OOO in range (O0O00O0O0OO000OO0 .n -1 ,-1 ,-1 ):#line:64
-            for O0OO00000OO0O0000 in range (O0O00O0O0OO000OO0 .n -1 ,-1 ,-1 ):#line:66
-                O00O00000OO00O000 =OO000O00O00O00OO0 [O0O00O0O0OO000OO0 .bit_index (O00O00000O0000OOO ,O0OO00000OO0O0000 ,0 ):O0O00O0O0OO000OO0 .bit_index (O00O00000O0000OOO ,O0OO00000OO0O0000 ,4 )]#line:67
-                O00OOOOOO00OO00O0 +=O00O00000OO00O000 [::-1 ]+" "#line:68
-            O00OOOOOO00OO00O0 +="\n"#line:69
-        O00OOOOOO00OO00O0 +="\n"#line:70
-        return O00OOOOOO00OO00O0 #line:71
-    def __setitem__ (OOOO00O00O00O000O ,OOOO0000OOOOOOO00 ,O0OO0O0O00O00OO00 ):#line:74
-        OO000OOOOO00O00O0 ,OO00O00O0OO000O00 ,O000O0O0OOOO0000O =OOOO0000OOOOOOO00 #line:75
-        OO000OOOOO00O00O0 =int (OO000OOOOO00O00O0 )#line:76
-        OO00O00O0OO000O00 =int (OO00O00O0OO000O00 )#line:77
-        OOOO000O00O0O00OO =OOOO00O00O00O000O .bit_index (OO000OOOOO00O00O0 ,OO00O00O0OO000O00 ,O000O0O0OOOO0000O )#line:78
-        if O0OO0O0O00O00OO00 :#line:80
-            OOOO00O00O00O000O .board |=(1 <<OOOO000O00O0O00OO )#line:81
-        else :#line:82
-            OOOO00O00O00O000O .board &=~(1 <<OOOO000O00O0O00OO )#line:83
-    def __hash__ (OOOO00O000O0OOO0O ):#line:85
-        return hash (OOOO00O000O0OOO0O .board )#line:86
-class BitBoardTable ():#line:89
-    def __init__ (O0OOOOOO0000O0OOO ,OO0O000OOO0O0OOOO ):#line:92
-        O0OOOOOO0000O0OOO .n =OO0O000OOO0O0OOOO #line:93
-        O0OOOOOO0000O0OOO .table ={}#line:94
-    def put (O0000OOO0OO0O00O0 ,OO0OOOO00000OOOO0 ,O0OOOO0O0O0O000OO ):#line:96
-        O0000OOO0OO0O00O0 .table [OO0OOOO00000OOOO0 ][0 ]+=O0OOOO0O0O0O000OO #line:97
-        O0000OOO0OO0O00O0 .table [OO0OOOO00000OOOO0 ][1 ]+=1 #line:98
-    def get (O00OO000000O0OOOO ,OO0O00000O0O00OO0 ):#line:100
-        return O00OO000000O0OOOO .table [OO0O00000O0O00OO0 ][0 ]/O00OO000000O0OOOO .table [OO0O00000O0O00OO0 ][1 ]#line:101
-def generate_random_board (OO00OO0O00OOOO0OO ):#line:105
-    import numpy as np #line:106
-    OOO0OO000O000000O =np .zeros ((OO00OO0O00OOOO0OO ,OO00OO0O00OOOO0OO ,4 ),dtype =int )#line:107
-    OOO0OO000O000000O [0 ,:,0 ]=1 #line:108
-    OOO0OO000O000000O [-1 ,:,2 ]=1 #line:109
-    OOO0OO000O000000O [:,0 ,3 ]=1 #line:110
-    OOO0OO000O000000O [:,-1 ,1 ]=1 #line:111
-    for O0O000O0OOO0O00OO in range (1 ,OO00OO0O00OOOO0OO -1 ):#line:113
-        for OO00O0000O000OOO0 in range (1 ,OO00OO0O00OOOO0OO -1 ):#line:114
-            for O0000OO00000O0O0O in range (4 ):#line:115
-                if np .random .randint (0 ,2 ):#line:116
-                    OOO0OO000O000000O [O0O000O0OOO0O00OO ,OO00O0000O000OOO0 ,O0000OO00000O0O0O ]=1 #line:117
-    return OOO0OO000O000000O #line:119
-@lru_cache (maxsize =100000 )#line:121
-def h (O0OOOOOO00OOO0000 ,OOOO0O00OO0OO0O00 ):#line:122
-    O00O00OO000000000 =(O0OOOOOO00OOO0000 [0 ]-OOOO0O00OO0OO0O00 [0 ])**2 +(O0OOOOOO00OOO0000 [1 ]-OOOO0O00OO0OO0O00 [1 ])**2 #line:124
-    return O00O00OO000000000 #line:125
-@lru_cache (maxsize =400 )#line:127
-def get_adjacent_moves (O0OO00O00O00OOO0O ,OO0O000OO0OOOO0O0 ,obstacle =None ,):#line:130
-    OO0O00O000000OOO0 =[]#line:133
-    O00OO0O00OO0OO000 =[((-1 ,0 ),0 ),((0 ,1 ),1 ),((1 ,0 ),2 ),((0 ,-1 ),3 )]#line:134
-    OO0O0O0000O00O0OO =O0OO00O00O00OOO0O [0 ]#line:135
-    OO0OO0OO00OOO0O0O =O0OO00O00O00OOO0O [1 ]#line:136
-    for OOO000OOO00OOO0OO ,O0O00O0OOO0O000O0 in O00OO0O00OO0OO000 :#line:137
-        O00O00OO00O0O000O ,OO00OOOOO0O0O0O0O =OO0O0O0000O00O0OO +OOO000OOO00OOO0OO [0 ],OO0OO0OO00OOO0O0O +OOO000OOO00OOO0OO [1 ]#line:138
-        if not OO0O000OO0OOOO0O0 [O0O00O0OOO0O000O0 ]and (O00O00OO00O0O000O ,OO00OOOOO0O0O0O0O )!=obstacle :#line:139
-            OO0O00O000000OOO0 .append ((O00O00OO00O0O000O ,OO00OOOOO0O0O0O0O ))#line:140
-    return OO0O00O000000OOO0 #line:141
-def is_terminal (O0O0O0O000O00O00O ,jump_point_search =False ):#line:143
-    O0O0O000OOOO00OOO =O0O0O0O000O00O00O ['player']#line:145
-    O00000OO0O00OO00O =O0O0O0O000O00O00O ['adversary']#line:146
-    O00O0O00OO0OOOO00 =[]#line:149
-    heapq .heappush (O00O0O00OO0OOOO00 ,(0 ,O0O0O000OOOO00OOO ))#line:150
-    O0O000OO00OO0O000 ={O0O0O000OOOO00OOO :None }#line:151
-    OOO00O0OOOOOO0OO0 =set ()#line:152
-    while O00O0O00OO0OOOO00 :#line:154
-        O0OOO0OO0000O000O =heapq .heappop (O00O0O00OO0OOOO00 )[1 ]#line:155
-        if O0OOO0OO0000O000O in OOO00O0OOOOOO0OO0 :#line:157
-            continue #line:158
-        OOO00O0OOOOOO0OO0 .add (O0OOO0OO0000O000O )#line:160
-        O0O00OO0OO0OOOOOO =O0O0O0O000O00O00O ['board'].walls (O0OOO0OO0000O000O )#line:161
-        OOO00O0O0000OOO00 =get_adjacent_moves (O0OOO0OO0000O000O ,O0O00OO0OO0OOOOOO )#line:162
-        for OOOOOOOOO000O00OO in OOO00O0O0000OOO00 :#line:164
-            if OOOOOOOOO000O00OO ==O00000OO0O00OO00O :#line:165
-                return False ,OOO00O0OOOOOO0OO0 #line:166
-            if OOOOOOOOO000O00OO in OOO00O0OOOOOO0OO0 :#line:167
-                continue #line:168
-            O0O000OO00OO0O000 [OOOOOOOOO000O00OO ]=O0OOO0OO0000O000O #line:170
-            heapq .heappush (O00O0O00OO0OOOO00 ,(h (OOOOOOOOO000O00OO ,O00000OO0O00OO00O ),OOOOOOOOO000O00OO ))#line:171
-    return True ,OOO00O0OOOOOO0OO0 #line:174
-def count_closest_cells (O0OO0OOOOOOO0000O ,OOO00O00O0O00O0OO ):#line:176
-    O0000OOO0OO0O00OO =0 #line:178
-    for O0OO0OO0OO00O0OO0 in OOO00O00O0O00O0OO :#line:179
-        if O0OO0OO0OO00O0OO0 in O0OO0OOOOOOO0000O :#line:180
-            if OOO00O00O0O00O0OO [O0OO0OO0OO00O0OO0 ]<O0OO0OOOOOOO0000O [O0OO0OO0OO00O0OO0 ]:#line:181
-                O0000OOO0OO0O00OO +=1 #line:182
-            elif O0OO0OOOOOOO0000O [O0OO0OO0OO00O0OO0 ]<OOO00O00O0O00O0OO [O0OO0OO0OO00O0OO0 ]:#line:183
-                O0000OOO0OO0O00OO -=1 #line:184
-    return O0000OOO0OO0O00OO #line:186
-def simple_territory_search (OO00000000OO0O0OO ,O000OOOOOOO000OO0 ,O00O0OO0000000O00 ,OOOOOOOO0000OO0OO ):#line:188
-    OOO0OO0OO000O0OO0 =get_possible_positions (OO00000000OO0O0OO ,OOOOOOOO0000OO0OO ,O000OOOOOOO000OO0 ,depth_limited =False )#line:193
-    O00OOOO00OO00O0OO =get_possible_positions (OO00000000OO0O0OO ,OOOOOOOO0000OO0OO ,O00O0OO0000000O00 ,depth_limited =False )#line:197
-    O0O0O0O0O00OOOO0O ={}#line:201
-    O00O0OO0O0O0OOO00 ={}#line:202
-    O000OOOO0000O00OO =set (OOO0OO0OO000O0OO0 .keys ()).union (set (O00OOOO00OO00O0OO .keys ()))#line:203
-    OO0O00O0000O0O000 =set (OOO0OO0OO000O0OO0 .keys ()).intersection (set (O00OOOO00OO00O0OO .keys ()))#line:204
-    for OOOO0OO0O0000OO0O in O000OOOO0000O00OO :#line:206
-        if OOOO0OO0O0000OO0O not in OOO0OO0OO000O0OO0 :#line:207
-            O00O0OO0O0O0OOO00 [OOOO0OO0O0000OO0O ]=O00OOOO00OO00O0OO [OOOO0OO0O0000OO0O ]#line:208
-            continue #line:209
-        if OOOO0OO0O0000OO0O not in O00OOOO00OO00O0OO :#line:210
-            O0O0O0O0O00OOOO0O [OOOO0OO0O0000OO0O ]=OOO0OO0OO000O0OO0 [OOOO0OO0O0000OO0O ]#line:211
-            continue #line:212
-        if OOO0OO0OO000O0OO0 [OOOO0OO0O0000OO0O ]<O00OOOO00OO00O0OO [OOOO0OO0O0000OO0O ]:#line:213
-            O0O0O0O0O00OOOO0O [OOOO0OO0O0000OO0O ]=OOO0OO0OO000O0OO0 [OOOO0OO0O0000OO0O ]#line:214
-        elif O00OOOO00OO00O0OO [OOOO0OO0O0000OO0O ]<OOO0OO0OO000O0OO0 [OOOO0OO0O0000OO0O ]:#line:215
-            O00O0OO0O0O0OOO00 [OOOO0OO0O0000OO0O ]=O00OOOO00OO00O0OO [OOOO0OO0O0000OO0O ]#line:216
-    return O0O0O0O0O00OOOO0O ,O00O0OO0O0O0OOO00 ,OO0O00O0000O0O000 #line:218
-def utility (OO0O0OO00OOOOO0OO ):#line:220
-    O000O0OO0OOOO0OO0 ,OO00OOO00000OOOO0 ,O0O000OO0OOO00000 =simple_territory_search (OO0O0OO00OOOOO0OO ['board'],OO0O0OO00OOOOO0OO ['player'],OO0O0OO00OOOOO0OO ['adversary'],OO0O0OO00OOOOO0OO ['max_step'])#line:222
-    if len (O0O000OO0OOO00000 )==0 :#line:223
-        O0OO0O0O000000OO0 =len (O000O0OO0OOOO0OO0 )#line:224
-        O0O0O0O0O0O00OOO0 =len (OO00OOO00000OOOO0 )#line:225
-        if O0OO0O0O000000OO0 >O0O0O0O0O0O00OOO0 :#line:226
-            return 1 #line:227
-        elif O0OO0O0O000000OO0 <O0O0O0O0O0O00OOO0 :#line:228
-            return -1 #line:229
-        else :#line:230
-            return -0.99 #line:231
-    O0OOO0OO00O00000O =len (O000O0OO0OOOO0OO0 )#line:232
-    O0OO000OO0O0O0O0O =len (OO00OOO00000OOOO0 )#line:233
-    if O0OOO0OO00O00000O ==0 and O0OO000OO0O0O0O0O ==0 :#line:234
-        return 0 #line:235
-    OOOOOOO00OOO0OOOO =0.5 #line:236
-    return ((O0OOO0OO00O00000O -O0OO000OO0O0O0O0O )/(O0OOO0OO00O00000O +O0OO000OO0O0O0O0O ))*OOOOOOO00OOO0OOOO #line:237
-def get_possible_positions (OOOO00000O0OOOO0O ,OO0000OOOO0O0OOO0 ,O0O0OOOO0O0OO00OO ,depth_limited =True ,obstacle =None ):#line:244
-    O0OO0O00OOO0O0000 =O0O0OOOO0O0OO00OO #line:249
-    OO000O0000O00O000 =deque ()#line:250
-    O0O000OO00OOOOOO0 ={}#line:251
-    O0O000OO00OOOOOO0 [O0OO0O00OOO0O0000 ]=0 #line:253
-    OO000O0000O00O000 .append (O0OO0O00OOO0O0000 )#line:254
-    while (len (OO000O0000O00O000 )>0 ):#line:256
-        OOO0O0O0OO0OO0OOO =OO000O0000O00O000 .popleft ()#line:257
-        if O0O000OO00OOOOOO0 [OOO0O0O0OO0OO0OOO ]>=OO0000OOOO0O0OOO0 -1 and depth_limited :#line:258
-            continue #line:259
-        O0OOOO000OOO0O0OO =OOOO00000O0OOOO0O .walls (OOO0O0O0OO0OO0OOO )#line:260
-        for OO0O0O0OO000OOO0O in get_adjacent_moves (OOO0O0O0OO0OO0OOO ,O0OOOO000OOO0O0OO ,obstacle =obstacle ,):#line:263
-            if OO0O0O0OO000OOO0O not in O0O000OO00OOOOOO0 :#line:264
-                O0O000OO00OOOOOO0 [OO0O0O0OO000OOO0O ]=O0O000OO00OOOOOO0 [OOO0O0O0OO0OO0OOO ]+1 #line:265
-                OO000O0000O00O000 .append (OO0O0O0OO000OOO0O )#line:266
-    return O0O000OO00OOOOOO0 #line:268
-def get_possible_moves (O0OOO000OOO000000 ):#line:270
-    OO0OO0000O000OOOO ,OOO000OOOOO0O0O0O =is_terminal (O0OOO000OOO000000 )#line:272
-    if OO0OO0000O000OOOO :#line:273
-        return []#line:274
-    O00O00OOOO000O0OO =O0OOO000OOO000000 ['adversary']#line:275
-    O0OO0O00OO0OO000O =O0OOO000OOO000000 ['player']#line:276
-    if O0OOO000OOO000000 ['is_player_turn']:#line:277
-        O00O00OOOO000O0OO =O0OOO000OOO000000 ['player']#line:278
-        O0OO0O00OO0OO000O =O0OOO000OOO000000 ['adversary']#line:279
-    OOO000O0OOOOOO00O =get_possible_positions (O0OOO000OOO000000 ['board'],O0OOO000OOO000000 ['max_step'],O00O00OOOO000O0OO ,obstacle =O0OO0O00OO0OO000O )#line:280
-    OO0O0000O00O0O00O =[]#line:282
-    for OOO0OOO00O00O000O in OOO000O0OOOOOO00O :#line:283
-        O0O0000O00O00O0OO =OOO0OOO00O00O000O [0 ]#line:284
-        O00O0O0000O00OO0O =OOO0OOO00O00O000O [1 ]#line:285
-        for O0OO00O0O0O00O0O0 in range (4 ):#line:286
-            if O0OOO000OOO000000 ['board'][O0O0000O00O00O0OO ,O00O0O0000O00OO0O ,O0OO00O0O0O00O0O0 ]:#line:287
-                continue #line:288
-            OO0O0000O00O0O00O .append ((OOO0OOO00O00O000O ,O0OO00O0O0O00O0O0 ))#line:289
-    return OO0O0000O00O0O00O #line:290
-def generate_children (OOO0OO0OO0O0O0000 ):#line:292
-    OOOOOOOO00O0OOO0O =get_possible_moves (OOO0OO0OO0O0O0000 )#line:294
-    return OOOOOOOO00O0OOO0O #line:295
-def perform_action (OO0O0O0O000O0OO00 ,OO00OOOOOO0OO0000 ):#line:297
-    OO0OO00O0O000O0OO ,OOO0000O000O0000O =OO00OOOOOO0OO0000 #line:299
-    OO0000O0O0OOOOOO0 ,O0O0O00O00O0OO000 =OO0OO00O0O000O0OO #line:300
-    OOO0OOOO0OO00O00O ={0 :2 ,1 :3 ,2 :0 ,3 :1 }#line:301
-    OOO000000O0OOO00O =((-1 ,0 ),(0 ,1 ),(1 ,0 ),(0 ,-1 ))#line:302
-    OO0O0O0O000O0OO00 ['board'][OO0000O0O0OOOOOO0 ,O0O0O00O00O0OO000 ,OOO0000O000O0000O ]=True #line:304
-    O00OO000O000OO00O =OOO000000O0OOO00O [OOO0000O000O0000O ]#line:305
-    OO0O0OO000O00OOOO ,OOOO0OOOO0OO0OOOO =(OO0000O0O0OOOOOO0 +O00OO000O000OO00O [0 ],O0O0O00O00O0OO000 +O00OO000O000OO00O [1 ])#line:306
-    OO0O0O0O000O0OO00 ['board'][OO0O0OO000O00OOOO ,OOOO0OOOO0OO0OOOO ,OOO0OOOO0OO00O00O [OOO0000O000O0000O ]]=True #line:307
-    if OO0O0O0O000O0OO00 ['is_player_turn']:#line:311
-        O0OOO0O0OO0O00O00 =(OO0O0O0O000O0OO00 ['is_player_turn'],OO0O0O0O000O0OO00 ['player'],OO00OOOOOO0OO0000 )#line:312
-        OO0O0O0O000O0OO00 ['player']=OO0OO00O0O000O0OO #line:313
-    else :#line:314
-        O0OOO0O0OO0O00O00 =(OO0O0O0O000O0OO00 ['is_player_turn'],OO0O0O0O000O0OO00 ['adversary'],OO00OOOOOO0OO0000 )#line:315
-        OO0O0O0O000O0OO00 ['adversary']=OO0OO00O0O000O0OO #line:316
-    OO0O0O0O000O0OO00 ['is_player_turn']=not OO0O0O0O000O0OO00 ['is_player_turn']#line:318
-    OO0O0O0O000O0OO00 .get ('action_history',[]).append (O0OOO0O0OO0O00O00 )#line:319
-def undo_last_action (OOOOOO0OOOO0OOO0O ):#line:321
-    O000OOOO0O0O000OO =OOOOOO0OOOO0OOO0O .get ('action_history',[])#line:323
-    if len (O000OOOO0O0O000OO )==0 :#line:324
-        return #line:325
-    OO0O0O0OO0O000O0O ,O000OO00O0OO00O00 ,O000O00OO00OOO00O =O000OOOO0O0O000OO .pop ()#line:326
-    if OO0O0O0OO0O000O0O :#line:327
-        OOOOOO0OOOO0OOO0O ['player']=O000OO00O0OO00O00 #line:328
-    else :#line:329
-        OOOOOO0OOOO0OOO0O ['adversary']=O000OO00O0OO00O00 #line:330
-    O00O0O0O0O000O000 ,O000000OO0000000O =O000O00OO00OOO00O #line:332
-    O0O0O0OOO0OO000OO ,O0000O0O0000OO0O0 =O00O0O0O0O000O000 #line:333
-    OO00O000OO0O00OO0 ={0 :2 ,1 :3 ,2 :0 ,3 :1 }#line:334
-    OOOOO00OOOO0O0O00 =((-1 ,0 ),(0 ,1 ),(1 ,0 ),(0 ,-1 ))#line:335
-    OOOOOO0OOOO0OOO0O ['board'][O0O0O0OOO0OO000OO ,O0000O0O0000OO0O0 ,O000000OO0000000O ]=False #line:337
-    OOO00OO0O0OOOO000 =OOOOO00OOOO0O0O00 [O000000OO0000000O ]#line:338
-    O0O0O0OOOOO0O000O ,OO0OO00O0O00000O0 =(O0O0O0OOO0OO000OO +OOO00OO0O0OOOO000 [0 ],O0000O0O0000OO0O0 +OOO00OO0O0OOOO000 [1 ])#line:339
-    OOOOOO0OOOO0OOO0O ['board'][O0O0O0OOOOO0O000O ,OO0OO00O0O00000O0 ,OO00O000OO0O00OO0 [O000000OO0000000O ]]=False #line:340
-    OOOOOO0OOOO0OOO0O ['is_player_turn']=not OOOOOO0OOOO0OOO0O ['is_player_turn']#line:342
-@register_agent ("student_agent")#line:344
-class StudentAgent (Agent ):#line:345
-    def __init__ (O0OO00OOO0O00O00O ,name ="StudentAgent"):#line:348
-        super (StudentAgent ,O0OO00OOO0O00O00O ).__init__ ()#line:349
-        O0OO00OOO0O00O00O .name =name #line:350
-        O0OO00OOO0O00O00O .dir_map ={"u":0 ,"r":1 ,"d":2 ,"l":3 ,}#line:356
-    class AlphaBeta :#line:358
-        def get_action (O0O0O00OO00OOOOOO ,O00O0OO00O0OO0000 ,O0000O0000OO0OOO0 ,OO00OO0OO00OOO000 ,time_limit =0.5 ,breadth_limit =10 ,):#line:366
-            OOOO00OO00OOO0OO0 =time .time ()#line:368
-            def OOO0OOO00OOO000O0 (O0OO0O00O0O0OOOOO ):#line:370
-                O0OOO0OOO0000O0OO =O0000O0000OO0OOO0 ['player']#line:371
-                O0OO0O0O0O00OO000 =O0OO0O00O0O0OOOOO [0 ]#line:372
-                OOO0OOOO0OOOO0O0O =O0000O0000OO0OOO0 ['adversary']#line:373
-                O00O0OO0000OOO00O =(O0OOO0OOO0000O0OO [0 ]-O0OO0O0O0O00OO000 [0 ])**2 +(O0OOO0OOO0000O0OO [1 ]-O0OO0O0O0O00OO000 [1 ])**2 #line:374
-                OO0O0O00OO0OOOOO0 =(OOO0OOOO0OOOO0O0O [0 ]-O0OO0O0O0O00OO000 [0 ])**2 +(OOO0OOOO0OOOO0O0O [1 ]-O0OO0O0O0O00OO000 [1 ])**2 #line:375
-                return O00O0OO0000OOO00O *OO0O0O00OO0OOOOO0 +O00O0OO0000OOO00O #line:376
-            def OOOO0O0OOO0O00000 (OO000OO0000OOOO0O ,OOOO0000O0000O000 ,O00O0OO00O0OO00OO ,O00O0O0OOO0O0OO00 ):#line:378
-                O0000OO0OO0OO00OO =time .time ()#line:379
-                if O0000OO0OO0OO00OO -OOOO00OO00OOO0OO0 >time_limit :#line:380
-                    return O00O0OO00O0OO0000 (OO000OO0000OOOO0O )#line:381
-                OOOO0OO000000OO00 =O0O0O00OO00OOOOOO (OO000OO0000OOOO0O )#line:382
-                OOOO0OO000000OO00 .sort (key =OOO0OOO00OOO000O0 )#line:383
-                OOOO0OO000000OO00 =OOOO0OO000000OO00 [:int (breadth_limit /OOOO0000O0000O000 )]#line:384
-                if OOOO0000O0000O000 ==OO00OO0OO00OOO000 or not OOOO0OO000000OO00 :#line:387
-                    return O00O0OO00O0OO0000 (OO000OO0000OOOO0O )#line:388
-                OOOOO0000OOOOO00O =OO000OO0000OOOO0O ['is_player_turn']#line:390
-                OOOO00O0000O0O00O =float ('-inf')if OOOOO0000OOOOO00O else float ('inf')#line:392
-                for O0OOOO00O0O0O0000 in OOOO0OO000000OO00 :#line:394
-                    if O0000OO0OO0OO00OO -OOOO00OO00OOO0OO0 >time_limit :#line:395
-                        break #line:396
-                    perform_action (OO000OO0000OOOO0O ,O0OOOO00O0O0O0000 )#line:398
-                    O0000O00OOO0O0OO0 =OOOO0O0OOO0O00000 (OO000OO0000OOOO0O ,OOOO0000O0000O000 +1 ,O00O0OO00O0OO00OO ,O00O0O0OOO0O0OO00 )#line:399
-                    undo_last_action (OO000OO0000OOOO0O )#line:400
-                    if OOOOO0000OOOOO00O :#line:402
-                        OOOO00O0000O0O00O =max (OOOO00O0000O0O00O ,O0000O00OOO0O0OO0 )#line:403
-                        O00O0OO00O0OO00OO =max (O00O0OO00O0OO00OO ,OOOO00O0000O0O00O )#line:404
-                    else :#line:405
-                        OOOO00O0000O0O00O =min (OOOO00O0000O0O00O ,O0000O00OOO0O0OO0 )#line:406
-                        O00O0O0OOO0O0OO00 =min (O00O0O0OOO0O0OO00 ,OOOO00O0000O0O00O )#line:407
-                    if O00O0O0OOO0O0OO00 <=O00O0OO00O0OO00OO :#line:408
-                        break #line:409
-                return OOOO00O0000O0O00O #line:410
-            OOOO00000OO0O00OO =O0O0O00OO00OOOOOO (O0000O0000OO0OOO0 )#line:413
-            OOOO00000OO0O00OO .sort (key =OOO0OOO00OOO000O0 )#line:415
-            OOOO00000OO0O00OO =OOOO00000OO0O00OO [:breadth_limit ]#line:416
-            O000O0000OOO0OO00 =OOOO00000OO0O00OO [0 ]#line:418
-            O000O000OOO0OO0O0 =float ('-inf')#line:419
-            for O0OO0O00OOO00O0OO in OOOO00000OO0O00OO :#line:420
-                perform_action (O0000O0000OO0OOO0 ,O0OO0O00OOO00O0OO )#line:421
-                OO0O000O0O0O00000 =OOOO0O0OOO0O00000 (O0000O0000OO0OOO0 ,1 ,float ('-inf'),float ('inf'))#line:422
-                undo_last_action (O0000O0000OO0OOO0 )#line:423
-                if OO0O000O0O0O00000 >O000O000OOO0OO0O0 :#line:424
-                    O000O000OOO0OO0O0 =OO0O000O0O0O00000 #line:425
-                    O000O0000OOO0OO00 =O0OO0O00OOO00O0OO #line:426
-            def O0OO0000O00OO00OO (OO0O0000O000O0OOO ):#line:428
-                perform_action (O0000O0000OO0OOO0 ,OO0O0000O000O0OOO )#line:429
-                O00O0000000O0O0O0 =O00O0OO00O0OO0000 (O0000O0000OO0OOO0 )#line:430
-                undo_last_action (O0000O0000OO0OOO0 )#line:431
-                return O00O0000000O0O0O0 #line:432
-            if O000O000OOO0OO0O0 ==-1 :#line:434
-                for O0OO0O00OOO00O0OO in OOOO00000OO0O00OO :#line:435
-                    perform_action (O0000O0000OO0OOO0 ,O0OO0O00OOO00O0OO )#line:436
-                    OO0O000O0O0O00000 =O00O0OO00O0OO0000 (O0000O0000OO0OOO0 )#line:437
-                    undo_last_action (O0000O0000OO0OOO0 )#line:438
-                    if OO0O000O0O0O00000 >O000O000OOO0OO0O0 :#line:439
-                        O000O000OOO0OO0O0 =OO0O000O0O0O00000 #line:440
-                        O000O0000OOO0OO00 =O0OO0O00OOO00O0OO #line:441
-                print (f'chosen action: {O000O0000OOO0OO00}, val: {O000O000OOO0OO0O0} utility: {O0OO0000O00OO00OO(O000O0000OOO0OO00)}')#line:442
-            return O000O0000OOO0OO00 #line:444
-    def step (O0OOO0O0000000000 ,OO0OO00OOO0O0OOOO ,OOO0O0O0O0O00O000 ,O0O0OO00OOO0OOOO0 ,O000OOO0O00000O0O ):#line:446
-        OOO00O0O0000OOOOO =BitBoard (OO0OO00OOO0O0OOOO )#line:448
-        OO0O0OOO00O00OOO0 ={'board':OOO00O0O0000OOOOO ,'player':OOO0O0O0O0O00O000 ,'adversary':O0O0OO00OOO0OOOO0 ,'max_step':O000OOO0O00000O0O ,'is_player_turn':True ,'action_history':[],}#line:456
-        O0000OOOO0OO0OOO0 =time .time ()#line:458
-        O0O00000O0O0O00O0 =O0OOO0O0000000000 .AlphaBeta .get_action (generate_children ,utility ,OO0O0OOO00O00OOO0 ,2 ,1.0 ,400 ,)#line:467
-        OOO0O0000000OO00O =time .time ()-O0000OOOO0OO0OOO0 #line:470
-        return O0O00000O0O0O00O0 #line:474
+from agents.agent import Agent
+from store import register_agent
+import numpy as np
+import time
+
+# IMPORTANT: WE might have to add these to requirements.txt?
+from collections import deque
+import heapq
+from functools import lru_cache
+
+# NOTE: I defined these at the global scope because I beleive this is fine according to the assignment
+# Description. However, we could also just redefine these all within the scope of the alpha-beta
+# functions that call them. The reason I didn't do this was because I was unsure about how much overhead
+# It would add, especially since we are using lru_cache to cache the results of these functions.
+# Whether this would actually be an issue idk.
+class BitBoard():
+
+    def __init__(self,npboard=None, n=12):
+        self.n = n
+        if npboard is not None:
+            self.n = npboard.shape[0]
+            self.from_array(npboard)
+
+    def bit_index(self, i, j, wall):
+        return 4 * (self.n * i + j) + wall
+
+    def from_array(self, npboard):
+        n = npboard.shape[0]
+        self.board = 0
+        self.n = n
+        for i in range(n):
+            for j in range(n):
+                for wall in range(4):
+                    if npboard[i, j, wall]:
+                        bit_index = self.bit_index(i, j, wall)
+                        self.board |= (1 << bit_index)
+
+    def to_array(self):
+        n = self.n
+        npboard = np.zeros((n, n, 4), dtype=bool)
+        for i in range(n):
+            for j in range(n):
+                for wall in range(4):
+                    bit_index = self.bit_index(i, j, wall)
+                    if (self.board & (1 << bit_index)):
+                        npboard[i, j, wall] = 1
+        return npboard
+
+    def __getitem__(self, key):
+        i, j, wall = key
+        i = int(i)
+        j = int(j)
+        bit_index = self.bit_index(i, j, wall)
+        return (int(self.board) & int(1 << bit_index)) != 0
+
+    def walls(self, pos):
+        i, j = pos
+        # use bit shiftin to get the walls
+        # we will need a bit mask , and then bit shift back
+        i = int(i)
+        j = int(j)
+        bit_index = 4 * (self.n * i + j)
+        # mask = 0xF << bit_index
+        # walls = (self.board & mask) >> bit_index
+        walls = (self.board >> bit_index) & 0xF
+
+        return (bool(walls & 1), bool(walls & 2), bool(walls & 4), bool(walls & 8))
+
+    def __str__(self) -> str:
+        string = ""
+        #print the bit board
+        bit_string = bin(self.board)[2:]
+        bit_string = "0" * (4 * self.n * self.n - len(bit_string)) + bit_string
+        # print each cell by going through the row and column
+        # but a space every 4 bits
+        # using string slicing
+
+        for i in range(self.n-1, -1, -1):
+
+            for j in range(self.n-1, -1, -1):
+                walls = bit_string[self.bit_index(i, j, 0):self.bit_index(i, j, 4)]
+                string += walls[::-1] + " "
+            string += "\n"
+        string += "\n"
+        return string
+
+
+    def __setitem__(self, key, value):
+        i, j, wall = key
+        i = int(i)
+        j = int(j)
+        bit_index = self.bit_index(i, j, wall)
+
+        if value:
+            self.board |= (1 << bit_index)
+        else:
+            self.board &= ~(1 << bit_index)
+
+    def __hash__(self):
+        return hash(self.board)
+
+
+class BitBoardTable():
+    """
+    This class is used to store win/loss data for a given board
+    We could use a dictionary but their poorly optimized for this use case
+    and we know the length of the key in advance
+    """
+
+    def __init__(self, n):
+        self.n = n
+        self.table = {} # (win, visits)
+
+    def put(self, boardint, value):
+        self.table[boardint][0] += value
+        self.table[boardint][1] += 1
+
+    def get(self, boardint):
+        return self.table[boardint][0] / self.table[boardint][1]
+
+
+
+def generate_random_board(n):
+    import numpy as np
+    board = np.zeros((n, n, 4), dtype=int)
+    board[0, :, 0] = 1
+    board[-1, :, 2] = 1
+    board[:, 0, 3] = 1
+    board[:, -1, 1] = 1
+
+    for y in range(1, n - 1):
+        for x in range(1, n - 1):
+            for wall in range(4):
+                if np.random.randint(0, 2):
+                    board[y, x, wall] = 1
+
+    return board
+
+@lru_cache(maxsize=100000)
+def h(current, adversary):
+
+    dist =  (current[0] - adversary[0])**2 + (current[1] - adversary[1])**2
+    # rount to 2 decimal places
+    return dist
+
+@lru_cache(maxsize=400)
+def get_adjacent_moves(position, walls,
+                       obstacle=None,
+                       ):
+    """
+    This returns the list of directly adjacent positions to a given position
+    Taking into account the walls and the adversary
+    """
+
+    moves = []
+    deltas = [((-1, 0), 0), ((0, 1), 1), ((1, 0), 2), ((0, -1), 3)]
+    x = position[0]
+    y = position[1]
+    for delta, i in deltas:
+        nx, ny = x + delta[0], y + delta[1]
+        if not walls[i] and (nx, ny) != obstacle:
+            moves.append((nx, ny))
+    return moves
+
+
+
+
+
+def is_terminal(state, jump_point_search=False):
+    """
+    board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
+    note that to cells share a wall position if they are adjacent
+    player is a tuple of (x, y) coordinates
+    adversary is a tuple of (x, y) coordinates
+    We are in a terminal state if there is no path from the player to the adversary
+    This means that we have divided the board into two parts, and the adversary is in the part
+    that the player cannot reach.
+    we can do an A* search from the player to the adversary, and if we cannot find a path, then
+    we are in a terminal state
+    We actually dont need, to do a* , because we dont care about the path
+    we just need to know if there is a path
+    so we can use best first search
+    """
+    player = state['player']
+    adversary = state['adversary']
+
+
+    open_list = []
+    heapq.heappush(open_list, (0, player))  # Heap element is a tuple (f_score, node)
+    parent_node = {player: None}
+    explored = set()
+
+    while open_list:
+        current = heapq.heappop(open_list)[1] # Get the node from the tuple
+
+        if current in explored:
+            continue
+
+        explored.add(current)
+        walls = state['board'].walls(current)
+        neighbors = get_adjacent_moves(current, walls)
+
+        for neighbor in neighbors:
+            if neighbor == adversary:
+                return False, explored
+            if neighbor in explored:
+                continue
+
+            parent_node[neighbor] = current
+            heapq.heappush(open_list, ( h(neighbor, adversary), neighbor))
+
+    # No path found, it's a terminal state
+
+    return True, explored
+
+def count_closest_cells(adversary_distances, player_distances):
+    """
+    Count the number of cells that are closer to the player than the adversary.
+    This takes a dict of distances from the adversary and a dict of distances from the player.
+    It's the result of running Dijkstra's algorithm to calculate the shortest 
+    path from the player and the adversary to all other cells.
+    Returns:
+        int: The difference in the number of cells that are closer to the player than the adversary.
+    """
+    # Count the number of cells that are closer to the player than the adversary
+    closest_cells = 0
+    for cell in player_distances:
+        if cell in adversary_distances:
+            if player_distances[cell] < adversary_distances[cell]:
+                closest_cells += 1
+            elif adversary_distances[cell] < player_distances[cell]:
+                closest_cells -= 1
+
+    return closest_cells
+
+def simple_territory_search(board, player, adversary, max_step):
+    """
+    Do a bfs from both the player and the adversary and get their distance to every square
+    in the players reachable positions 
+    compare them against the adversary's distance to the same square
+    if the player is closer, then the player controls that square
+    if the adversary is closer, then the adversary controls that square
+    """
+    player_dists = get_possible_positions(board,
+                                          max_step,
+                                          player,
+                                           depth_limited=False)
+    adversary_dists = get_possible_positions(board,
+                                              max_step,
+                                              adversary,
+                                              depth_limited=False)
+
+
+
+    player_territory = {}
+    adversary_territory = {}
+    # go through the union of the keys of both dicts
+    positions = set(player_dists.keys()).union(set(adversary_dists.keys()))
+    overlap = set(player_dists.keys()).intersection(set(adversary_dists.keys()))
+
+    for position in positions:
+        # go through each position
+        # if only the player can reach it, then the player controls it
+        # if only the adversary can reach it, then the adversary controls it
+        # if both can reach it, then we need to compare the distances
+        # if the distance is equal, then they both control it
+        if position not in player_dists:
+            adversary_territory[position] = adversary_dists[position]
+            continue
+        if position not in adversary_dists:
+            player_territory[position] = player_dists[position]
+            continue
+        if player_dists[position] < adversary_dists[position]:
+            player_territory[position] = player_dists[position]
+        elif adversary_dists[position] < player_dists[position]:
+            adversary_territory[position] = adversary_dists[position]
+
+    return player_territory, adversary_territory, overlap
+
+def utility(state):
+    """
+    The utility of the board is used to mark how good the board is for the player
+    There are a couple metrics we can use to determine the utility of the board
+    - the number of cells the player can reach in their section
+    - the number of cells the adversary can reach in their section
+    - we might want to try to increase our number of reachable cells, while decreasing the adversary's number of reachable cells
+    - we could use the distance between the player and the adversary
+          - if we want to be aggressice, we would want to close the distance
+          - if we want to be defensive, we would want to increase the distance
+    - we could use the count of closest cells
+      - that is we go through each cell in the space that is reachable from both the player and the adversary
+      - we would count the distance to reach that cell from the player and the adversary
+      - we would do this by performing dijkstra's algorithm from the player and then again from the adversary
+      - then we would mark all cells that are closer to the player than the adversary as the player's cells
+      - and all cells that are closer to the adversary than the player as the adversary's cells
+      - we would then count the number of cells in each section
+      - this is kind of like a territory control metric
+    - we could have a metric for the number of walls that are continuous, this would make it more likely for the player to close walls of
+    - could use q learning to learn a utility function
+    """
+    # New idea for implementation:
+    # - use a dual BFS to determine territory control
+    # - the utility is the difference in territory controlled by the player and the adversary
+    p_t, a_t, overlap = simple_territory_search(state['board'], state['player'], state['adversary'], state['max_step'])
+    if len(overlap) == 0:
+        player_score = len(p_t)
+        adversary_score = len(a_t)
+        if player_score > adversary_score:
+            return 1
+        elif player_score < adversary_score:
+            return -1
+        else:
+            return -0.99
+    point_p = len(p_t)
+    point_a = len(a_t)
+    if point_p == 0 and point_a == 0:
+        return 0
+    win_priority_scaler = 0.5
+    return ((point_p - point_a) / (point_p + point_a))  * win_priority_scaler    
+
+def get_possible_positions(board,
+                           max_step,
+                           position,
+                           depth_limited=True,
+                           obstacle=None
+                           ):
+    """
+    board is an mxmx4 grid, where m is the board size, and there are 4 wall positions
+    note that to cells share a wall position if they are adjacent
+    player is a tuple of (x, y) coordinates
+    adversary is a tuple of (x, y) coordinates
+    max_step is an integer that is the maxiumum manhattan distance a player can move
+    is_player_turn is a boolean that is True if it is the player's turn, False otherwise
+    To get the possible moves we want to perform a breadth first search from the player's position 
+    to all reachable positions in max_step moves. We will use a queue to store the positions we
+    need to visit, and a set to store the positions we have already visited.
+    we cannot pass through walls and we cannot go through the adversary or on top of the adversary
+    We also need to check if the board is in a game over state, if it is, we want to return an empty list
+    """
+
+    # we want to perform a breadth first search from the the player whos turn it is, to get to all reachable positions
+    # that have a manhattan distance of max_step or less
+    # The children of each node are the 4 adjacent positions
+    # except those that are blocked by a wall, or the adversary
+
+    # the queue should contain the position as well as the distance we travel to find that position
+    # if the distance is greater than max_step, we do not want to add it to the queue
+
+    init_pos = position
+    queue = deque()
+    distances = {}
+
+    distances[init_pos] = 0
+    queue.append(init_pos)
+
+    while (len(queue) > 0):
+        u = queue.popleft()
+        if distances[u] >= max_step - 1 and depth_limited:
+            continue
+        walls = board.walls(u)
+        for v in get_adjacent_moves(u, walls,
+                                    obstacle=obstacle,
+                                    ):
+            if v not in distances:
+                distances[v] = distances[u] + 1
+                queue.append(v)
+
+    return distances
+
+def get_possible_moves(state):
+    """
+    This uses all the possible positions to get the possible moves
+    A possible move is a position you can go where you can place a wall
+    each position has 4 possible moves, one for each wall
+    each placeable wall counts as a different move
+    A move is a tuple of (position, wall)
+    """
+    terminal, explore = is_terminal(state)
+    if terminal:
+        return []
+    pos = state['adversary']
+    blocker = state['player'] 
+    if state['is_player_turn']:
+        pos = state['player'] 
+        blocker = state['adversary'] 
+    possible_positions = get_possible_positions(state['board'],state['max_step'], pos, obstacle=blocker)
+
+    possible_moves = []
+    for position in possible_positions:
+        x = position[0]
+        y = position[1]
+        for i in range(4):
+            if state['board'][x,y,i]:
+                continue
+            possible_moves.append((position, i))
+    return possible_moves
+
+def generate_children(state):
+    """
+    This generates the children of a given state
+    An action that mutates the state of the board
+    """
+    possible_moves = get_possible_moves(state)
+    return possible_moves
+
+def perform_action(state, action):
+    """
+    mutates the state of the board given an action
+    action = (new_position, wall)
+    """
+    position, wall = action
+    x, y = position
+    opposites = {0: 2, 1: 3, 2: 0, 3: 1}
+    moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
+
+    # place wall, and opposite wall
+    state['board'][x,y,wall] = True
+    move = moves[wall]
+    anti_x, anti_y = (x + move[0], y + move[1])
+    state['board'][anti_x,anti_y,opposites[wall]] = True
+
+    # for each action, we save whos turn it was , and where they move from
+    # (turn, prev_position, action)
+
+    # update player or adversary position
+
+    if state['is_player_turn']:
+        action_event = (state['is_player_turn'], state['player'], action)
+        state['player'] = position
+    else:
+        action_event = (state['is_player_turn'], state['adversary'], action)
+        state['adversary'] = position
+
+    state['is_player_turn'] = not state['is_player_turn']
+    state.get('action_history', []).append(action_event)
+
+def undo_last_action(state):
+    """
+    undoes the action on the state
+    """
+    history = state.get('action_history', [])
+    if len(history) == 0:
+        return
+    turn, prev_position, action = history.pop()
+    if turn:
+        state['player'] = prev_position
+    else:
+        state['adversary'] = prev_position
+
+    position, wall = action
+    x, y = position
+    opposites = {0: 2, 1: 3, 2: 0, 3: 1}
+    moves = ((-1, 0), (0, 1), (1, 0), (0, -1))
+
+    # place wall, and opposite wall
+    state['board'][x,y,wall] = False
+    move = moves[wall]
+    anti_x, anti_y = (x + move[0], y + move[1])
+    state['board'][anti_x,anti_y,opposites[wall]] = False
+
+    state['is_player_turn'] = not state['is_player_turn']
+
+@register_agent("student_agent")
+class StudentAgent(Agent):
+    """
+    A dummy class for your implementation. Feel free to use this class to
+    add any helper functionalities needed for your agent.
+    """
+
+    def __init__(self, name="StudentAgent"):
+        super(StudentAgent, self).__init__()
+        self.name = name
+        self.dir_map = {
+            "u": 0,
+            "r": 1,
+            "d": 2,
+            "l": 3,
+        }
+
+    class AlphaBeta:
+
+        def get_action(generate_children, 
+                    utility, 
+                    state, 
+                    max_depth, 
+                    time_limit=0.5,
+                    breadth_limit=10,
+                    ):
+            """
+            children returned from generate children is a list of actiosn
+            actions are (position, wall_direction)
+            """
+            start_time = time.time()
+
+            def child_heuristic(child):
+                player_pos = state['player']
+                child_pos = child[0]
+                adv_pos = state['adversary']
+                distance_from_player = (player_pos[0] - child_pos[0])**2 + (player_pos[1] - child_pos[1])**2
+                distance_to_adv = (adv_pos[0] - child_pos[0])**2 + (adv_pos[1] - child_pos[1])**2
+                return distance_from_player * distance_to_adv  + distance_from_player
+
+            def minimax(cur_state, depth, alpha, beta):
+                # if max_player = True, then we are maximizing player
+                current_time = time.time()
+                if current_time - start_time > time_limit:
+                    return utility(cur_state)
+                children = generate_children(cur_state)
+                children.sort(key=child_heuristic)
+                children = children[:int(breadth_limit/depth)]
+
+
+                if depth == max_depth or not children:
+                    return utility(cur_state)
+
+                max_player = cur_state['is_player_turn']
+
+                cur_val = float('-inf') if max_player else float('inf')
+
+                for child in children:
+                    if current_time - start_time > time_limit:
+                        break
+
+                    perform_action(cur_state, child)
+                    val = minimax(cur_state, depth + 1, alpha, beta)
+                    undo_last_action(cur_state)
+
+                    if max_player:
+                        cur_val = max(cur_val, val)
+                        alpha = max(alpha, cur_val)
+                    else: 
+                        cur_val = min(cur_val, val)
+                        beta = min(beta, cur_val)
+                    if beta <= alpha:
+                        break
+                return cur_val
+
+
+            # get the move that maximizes the utility
+            children = generate_children(state)
+            # sort each child by its distance from the player
+
+            # the sort function sorts in 
+            children.sort(key=child_heuristic)
+            children = children[:breadth_limit]
+
+            max_child = children[0]
+            max_val = float('-inf')
+            for child in children:
+                perform_action(state, child)
+                child_val = minimax(state, 1, float('-inf'), float('inf'))
+                undo_last_action(state)
+                if child_val > max_val:
+                    max_val = child_val
+                    max_child = child
+
+            def get_utility(move):
+                perform_action(state, move)
+                val = utility(state)
+                undo_last_action(state)
+                return val
+
+            #print(f'chosen action: {max_child}, val: {max_val}, utility: {get_utility(max_child)}')
+            if max_val == -1:
+                for child in children:
+                    perform_action(state, child)
+                    child_val = utility(state)
+                    undo_last_action(state)
+                    if child_val > max_val:
+                        max_val = child_val
+                        max_child = child
+                print(f'chosen action: {max_child}, val: {max_val} utility: {get_utility(max_child)}')
+
+            return max_child
+
+    def step(self, chess_board, my_pos, adv_pos, max_step):
+        """
+        Implement the step function of your agent here.
+        You can use the following variables to access the chess board:
+        - chess_board: a numpy array of shape (x_max, y_max, 4)
+        - my_pos: a tuple of (x, y)
+        - adv_pos: a tuple of (x, y)
+        - max_step: an integer
+        You should return a tuple of ((x, y), dir),
+        where (x, y) is the next position of your agent and dir is the direction of the wall
+        you want to put on.
+        Please check the sample implementation in agents/random_agent.py or agents/human_agent.py for more details.
+        """
+        board_number = BitBoard(chess_board)
+        state = {
+            'board': board_number,
+            'player': my_pos,
+            'adversary': adv_pos,
+            'max_step': max_step,
+            'is_player_turn': True,
+            'action_history': [],
+        }
+
+        start_time = time.time()
+
+        new_action = self.AlphaBeta.get_action(
+            generate_children,
+            utility,
+            state,
+            3, # Max depth
+            1.0, # Time Limit
+            400, # Depth Limit
+        )
+
+
+        time_taken = time.time() - start_time
+
+        print("My ALPHA-BETA AI's turn took ", time_taken, "seconds.")
+
+
+        return new_action
