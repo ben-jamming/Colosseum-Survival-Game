@@ -190,7 +190,29 @@ class TournamentVisualizer:
         
         # Load the data
         tournament_data = pd.read_csv(csv_file)
-        
+
+        # tournament_data['p1 depth'] = tournament_data['p1'].str.extract(r'Dpth_(\d+)').astype(int)
+        # tournament_data['p1 breadth'] = tournament_data['p1'].str.extract(r'Brth_(\d+)').astype(int)
+        # tournament_data['p2 depth'] = tournament_data['p2'].str.extract(r'Dpth_(\d+)').astype(int)
+        # tournament_data['p2 breadth'] = tournament_data['p2'].str.extract(r'Brth_(\d+)').astype(int)
+        def format_name(name):
+            """
+            Change the format of each name from 'AB_Dpth_x_Brth_y_dpz' to 'D_x_B_y'
+            
+            where:
+            - x is the depth (int)
+            - y is the breadth (int)
+            - z is the dynamic policy (bool) and we remove all of 'dpz' from the name
+            
+            """
+            depth = name.split('_')[2]
+            breadth = name.split('_')[4]
+            dynamic_policy = name.split('_')[5]
+            return f'D_{depth}_B_{breadth}'
+
+        # Format the names
+        # tournament_data['p1'] = tournament_data['p1'].apply(format_name)
+        # tournament_data['p2'] = tournament_data['p2'].apply(format_name)
 
         # Creating a pivot table for the scores
         pivot_table_player_1 = tournament_data.pivot_table(index='p1', columns='p2', values='p1_wins')#, aggfunc=np.sum)
@@ -210,12 +232,12 @@ class TournamentVisualizer:
         combined_pivot = combined_pivot[total_wins.index]
 
         print(combined_pivot)
-        # conduct ttest
-        
 
         # make a mask so nans don't show up in the heatmap
         # 0 values still should show up
         mask = combined_pivot.isnull()
+
+        # Rename the columns and rows to just display their
 
         # Plot the heatmap
         plt.figure(figsize=(10, 8))

@@ -1,43 +1,99 @@
 {
     "agents": [
         {
-            "name": "AB_Dpth_2_Brth_350_dpTrue",
+            "name": "AB_T_1.5_D_2_B_100_U_b_0.08_dp_True",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 350,
-                "time_limit": 1.0,
-                "use_full_ordering": true
+                "breadth_limit": 100,
+                "time_limit": 1.5,
+                "use_full_ordering": true,
+                "b": 0.08,
+                "deepening_policy": true
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_350_dpFalse",
+            "name": "AB_T_1.5_D_2_B_100_U_b_0.08_dp_False",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 350,
-                "time_limit": 1.0,
-                "use_full_ordering": false
+                "breadth_limit": 100,
+                "time_limit": 1.5,
+                "use_full_ordering": true,
+                "b": 0.08,
+                "deepening_policy": false
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_650_dpTrue",
+            "name": "AB_T_1.5_D_2_B_100_D_b_0.08_dp_True",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 650,
-                "time_limit": 1.0,
-                "use_full_ordering": true
+                "breadth_limit": 100,
+                "time_limit": 1.5,
+                "use_full_ordering": false,
+                "b": 0.08,
+                "deepening_policy": true
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_650_dpFalse",
+            "name": "AB_T_1.5_D_2_B_100_D_b_0.08_dp_False",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 650,
-                "time_limit": 1.0,
-                "use_full_ordering": false
+                "breadth_limit": 100,
+                "time_limit": 1.5,
+                "use_full_ordering": false,
+                "b": 0.08,
+                "deepening_policy": false
+            }
+        },
+        {
+            "name": "AB_T_1.7_D_2_B_100_U_b_0.08_dp_True",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 100,
+                "time_limit": 1.7,
+                "use_full_ordering": true,
+                "b": 0.08,
+                "deepening_policy": true
+            }
+        },
+        {
+            "name": "AB_T_1.7_D_2_B_100_U_b_0.08_dp_False",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 100,
+                "time_limit": 1.7,
+                "use_full_ordering": true,
+                "b": 0.08,
+                "deepening_policy": false
+            }
+        },
+        {
+            "name": "AB_T_1.7_D_2_B_100_D_b_0.08_dp_True",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 100,
+                "time_limit": 1.7,
+                "use_full_ordering": false,
+                "b": 0.08,
+                "deepening_policy": true
+            }
+        },
+        {
+            "name": "AB_T_1.7_D_2_B_100_D_b_0.08_dp_False",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 2,
+                "breadth_limit": 100,
+                "time_limit": 1.7,
+                "use_full_ordering": false,
+                "b": 0.08,
+                "deepening_policy": false
             }
         }
     ]

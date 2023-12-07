@@ -5,12 +5,14 @@ from matplotlib import use
 
 def generate_agent_configs():
     max_depths = range(2, 3, 1)
-    simulation_depths = range(50, 200, 50)
-    time_limits = [1.0]
+    branching_factors = [0.08]
+    simulation_depths = range(50, 301, 250)
+    time_limits = [1.5,1.7]
     exploration_constants = [0.5, 1.0, 1.5]
-    breadth_limits = range(350, 651, 300)
+    breadth_limits = range(100, 101, 1)
     dynamic_policies = [False]
     use_full_ordering = [True, False]
+    deepening_policies = [True, False]
     agents = []
 
     # # Generate MCTS agents
@@ -28,8 +30,8 @@ def generate_agent_configs():
     #     })
 
     # Generate AlphaBeta agents
-    for depth, breadth, time_limit, ordering in itertools.product(max_depths, breadth_limits, time_limits, use_full_ordering):
-        agent_name = f"AB_Dpth_{depth}_Brth_{breadth}_dp{ordering}"
+    for depth, breadth, time_limit, ordering, b, deepening in itertools.product(max_depths, breadth_limits, time_limits, use_full_ordering, branching_factors, deepening_policies):
+        agent_name = f"AB_T_{time_limit}_D_{depth}_B_{breadth}_{'U' if ordering else 'D'}_b_{b}_dp_{deepening}"
         agents.append({
             "name": agent_name,
             "strategy": "AlphaBeta",
@@ -37,7 +39,9 @@ def generate_agent_configs():
                 "max_depth": depth,
                 "breadth_limit": breadth,
                 "time_limit": time_limit,
-                "use_full_ordering": ordering
+                "use_full_ordering": ordering,
+                "b": b,
+                "deepening_policy": deepening
             }
         })
     import os
