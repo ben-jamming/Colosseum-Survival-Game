@@ -4,15 +4,15 @@ import itertools
 from matplotlib import use
 
 def generate_agent_configs():
-    max_depths = range(2, 3, 1)
+    max_depths = range(2, 6, 1)
     branching_factors = [0.08]
     simulation_depths = range(50, 301, 250)
-    time_limits = [1.5,1.7]
+    time_limits = [1.0]
     exploration_constants = [0.5, 1.0, 1.5]
-    breadth_limits = range(100, 101, 1)
+    breadth_limits = range(336, 337, 1)
     dynamic_policies = [False]
-    use_full_ordering = [True, False]
-    deepening_policies = [True, False]
+    use_full_ordering = [False]
+    deepening_policies = [True]
     agents = []
 
     # # Generate MCTS agents
@@ -31,7 +31,7 @@ def generate_agent_configs():
 
     # Generate AlphaBeta agents
     for depth, breadth, time_limit, ordering, b, deepening in itertools.product(max_depths, breadth_limits, time_limits, use_full_ordering, branching_factors, deepening_policies):
-        agent_name = f"AB_T_{time_limit}_D_{depth}_B_{breadth}_{'U' if ordering else 'D'}_b_{b}_dp_{deepening}"
+        agent_name = f"D_{depth}_B_{breadth}_T_{time_limit}"
         agents.append({
             "name": agent_name,
             "strategy": "AlphaBeta",

@@ -1,5 +1,4 @@
 import math
-from webbrowser import get
 from agents.agent import Agent
 from store import register_agent
 import numpy as np
@@ -473,12 +472,22 @@ class StudentAgent(Agent):
     add any helper functionalities needed for your agent.
     """
 
-    def __init__(self, name="StudentAgent", strategy="MCTS", dynamic_policy=True, **kwargs):
+    # def __init__(self, name="StudentAgent", strategy="MCTS", dynamic_policy=True, **kwargs):
+    #     super(StudentAgent, self).__init__()
+    #     self.name = name
+    #     self.dynamic_policy = dynamic_policy
+    #     self.strategy = strategy
+    #     self.kwargs = kwargs
+    #     self.dir_map = {
+    #         "u": 0,
+    #         "r": 1,
+    #         "d": 2,
+    #         "l": 3,
+    #     }
+
+    def __init__(self, name="StudentAgent"):
         super(StudentAgent, self).__init__()
         self.name = name
-        self.dynamic_policy = dynamic_policy
-        self.strategy = strategy
-        self.kwargs = kwargs
         self.dir_map = {
             "u": 0,
             "r": 1,
@@ -520,7 +529,7 @@ class StudentAgent(Agent):
                     return len(accessible_positions)
 
                 def calculate_distance_score(state, child):
-                    # OPTIONAL ORDERING HEURISTIC
+                    # OPTIONAL ORDERING HEURIS  TIC
                     player_pos = state['player']
                     adv_pos = state['adversary']
                     child_pos = child[0]
@@ -630,6 +639,67 @@ class StudentAgent(Agent):
 
             return max_child
 
+    # def step(self, chess_board, my_pos, adv_pos, max_step):
+    #     """
+    #     Implement the step function of your agent here.
+    #     You can use the following variables to access the chess board:
+    #     - chess_board: a numpy array of shape (x_max, y_max, 4)
+    #     - my_pos: a tuple of (x, y)
+    #     - adv_pos: a tuple of (x, y)
+    #     - max_step: an integer
+    #     You should return a tuple of ((x, y), dir),
+    #     where (x, y) is the next position of your agent and dir is the direction of the wall
+    #     you want to put on.
+    #     Please check the sample implementation in agents/random_agent.py or agents/human_agent.py for more details.
+    #     """
+    #     board_number = BitBoard(chess_board)
+    #     state = {
+    #         'board': board_number,
+    #         'player': my_pos,
+    #         'adversary': adv_pos,
+    #         'max_step': max_step,
+    #         'is_player_turn': True,
+    #         'action_history': [],
+    #     }
+    #     start_time = time.time()
+    #     max_depth = self.kwargs.get('max_depth',2)
+    #     if self.kwargs.get('iterative_deepening', False):
+
+    #         new_action = self.AlphaBeta.get_action(
+    #             generate_children,
+    #             utility,
+    #             state,
+    #             max_depth,
+    #             self.kwargs.get('time_limit',1.0),
+    #             self.kwargs.get('breadth_limit',400),
+    #             self.kwargs.get('use_full_ordering', False),
+    #             self.kwargs.get('b', 0.5),
+    #             self.kwargs.get('start_ab',(float('-inf'), float('inf')))
+    #         )
+    #     else:
+    #         depth = 1
+    #         while time.time() - start_time < self.kwargs.get('time_limit') and depth <= max_depth:
+    #             new_action = self.AlphaBeta.get_action(
+    #                 generate_children,
+    #                 utility,
+    #                 state,
+    #                 max_depth,
+    #                 self.kwargs.get('time_limit',1.0),
+    #                 self.kwargs.get('breadth_limit',400),
+    #                 self.kwargs.get('use_full_ordering', False),
+    #                 self.kwargs.get('b', 0.5),
+    #                 self.kwargs.get('start_ab',(float('-inf'), float('inf')))
+    #             )
+            
+    #             depth += 1
+
+    #     time_taken = time.time() - start_time
+
+    #     print(f"My {self.name} turn took ", time_taken, "seconds.")
+
+
+    #     return new_action
+    
     def step(self, chess_board, my_pos, adv_pos, max_step):
         """
         Implement the step function of your agent here.
@@ -653,36 +723,23 @@ class StudentAgent(Agent):
             'action_history': [],
         }
         start_time = time.time()
-        max_depth = self.kwargs.get('max_depth',2)
-        if self.kwargs.get('iterative_deepening', False):
+        max_depth = 3
 
+        depth = 1
+        while time.time() - start_time < 1.0 and depth <= max_depth:
             new_action = self.AlphaBeta.get_action(
                 generate_children,
                 utility,
                 state,
                 max_depth,
-                self.kwargs.get('time_limit',1.0),
-                self.kwargs.get('breadth_limit',400),
-                self.kwargs.get('use_full_ordering', False),
-                self.kwargs.get('b', 0.5),
-                self.kwargs.get('start_ab',(float('-inf'), float('inf')))
+                1.0,
+                336,
+                False,
+                0.008,
+                ('start_ab',(float('-inf'), float('inf')))
             )
-        else:
-            depth = 1
-            while time.time() - start_time < self.kwargs.get('time_limit') and depth <= max_depth:
-                new_action = self.AlphaBeta.get_action(
-                    generate_children,
-                    utility,
-                    state,
-                    max_depth,
-                    self.kwargs.get('time_limit',1.0),
-                    self.kwargs.get('breadth_limit',400),
-                    self.kwargs.get('use_full_ordering', False),
-                    self.kwargs.get('b', 0.5),
-                    self.kwargs.get('start_ab',(float('-inf'), float('inf')))
-                )
-            
-                depth += 1
+        
+            depth += 1
 
         time_taken = time.time() - start_time
 

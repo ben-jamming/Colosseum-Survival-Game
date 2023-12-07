@@ -18,7 +18,7 @@ class Tournament:
             cls._instance = super(Tournament, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, players, runs_per_match=5, display_results=False):
+    def __init__(self, players, runs_per_match=15, display_results=False):
         self.players = players
         self.runs_per_match = runs_per_match
         self.display_results = display_results

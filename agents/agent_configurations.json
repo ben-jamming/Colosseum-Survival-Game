@@ -1,99 +1,51 @@
 {
     "agents": [
         {
-            "name": "AB_T_1.5_D_2_B_100_U_b_0.08_dp_True",
+            "name": "D_2_B_336_T_1.0",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 2,
-                "breadth_limit": 100,
-                "time_limit": 1.5,
-                "use_full_ordering": true,
-                "b": 0.08,
-                "deepening_policy": true
-            }
-        },
-        {
-            "name": "AB_T_1.5_D_2_B_100_U_b_0.08_dp_False",
-            "strategy": "AlphaBeta",
-            "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 100,
-                "time_limit": 1.5,
-                "use_full_ordering": true,
-                "b": 0.08,
-                "deepening_policy": false
-            }
-        },
-        {
-            "name": "AB_T_1.5_D_2_B_100_D_b_0.08_dp_True",
-            "strategy": "AlphaBeta",
-            "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 100,
-                "time_limit": 1.5,
+                "breadth_limit": 336,
+                "time_limit": 1.0,
                 "use_full_ordering": false,
                 "b": 0.08,
                 "deepening_policy": true
             }
         },
         {
-            "name": "AB_T_1.5_D_2_B_100_D_b_0.08_dp_False",
+            "name": "D_3_B_336_T_1.0",
             "strategy": "AlphaBeta",
             "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 100,
-                "time_limit": 1.5,
-                "use_full_ordering": false,
-                "b": 0.08,
-                "deepening_policy": false
-            }
-        },
-        {
-            "name": "AB_T_1.7_D_2_B_100_U_b_0.08_dp_True",
-            "strategy": "AlphaBeta",
-            "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 100,
-                "time_limit": 1.7,
-                "use_full_ordering": true,
-                "b": 0.08,
-                "deepening_policy": true
-            }
-        },
-        {
-            "name": "AB_T_1.7_D_2_B_100_U_b_0.08_dp_False",
-            "strategy": "AlphaBeta",
-            "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 100,
-                "time_limit": 1.7,
-                "use_full_ordering": true,
-                "b": 0.08,
-                "deepening_policy": false
-            }
-        },
-        {
-            "name": "AB_T_1.7_D_2_B_100_D_b_0.08_dp_True",
-            "strategy": "AlphaBeta",
-            "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 100,
-                "time_limit": 1.7,
+                "max_depth": 3,
+                "breadth_limit": 336,
+                "time_limit": 1.0,
                 "use_full_ordering": false,
                 "b": 0.08,
                 "deepening_policy": true
             }
         },
         {
-            "name": "AB_T_1.7_D_2_B_100_D_b_0.08_dp_False",
+            "name": "D_4_B_336_T_1.0",
             "strategy": "AlphaBeta",
             "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 100,
-                "time_limit": 1.7,
+                "max_depth": 4,
+                "breadth_limit": 336,
+                "time_limit": 1.0,
                 "use_full_ordering": false,
                 "b": 0.08,
-                "deepening_policy": false
+                "deepening_policy": true
+            }
+        },
+        {
+            "name": "D_5_B_336_T_1.0",
+            "strategy": "AlphaBeta",
+            "parameters": {
+                "max_depth": 5,
+                "breadth_limit": 336,
+                "time_limit": 1.0,
+                "use_full_ordering": false,
+                "b": 0.08,
+                "deepening_policy": true
             }
         }
     ]
