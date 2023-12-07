@@ -1,9 +1,12 @@
+from itertools import groupby
 from re import T
+from click import group
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import csv
+from scipy.stats import linregress, ttest_ind, f_oneway
 
 class TournamentVisualizer:
     _instance = None
@@ -48,54 +51,146 @@ class TournamentVisualizer:
         plt.show()
 
     @staticmethod
-    def plot_turn_number_vs_time_taken_for_each_game(file_path):
+    def analyze_depth_breadth_combinations(file_path):
+        """
+        Analyze different combinations of depth and breadth parameters to find the most effective one.
+        """
         df = pd.read_csv(file_path)
-        df.columns = ['game_id', 'turn_number', 'board', 'wall_count', 'max_step', 'player_pos', 'adv_pos', 'utility', 'time_taken', 'action']
-        df = df[['game_id', 'turn_number', 'time_taken']]
 
-        # Normalize turn_number as a percentage of the game
-        max_turn_per_game = df.groupby('game_id')['turn_number'].max().reset_index()
-        max_turn_per_game.rename(columns={'turn_number': 'max_turn_number'}, inplace=True)
-        df = df.merge(max_turn_per_game, on='game_id')
-        df['normalized_turn'] = df['turn_number'] / df['max_turn_number']
+        # Extract depth and breadth from the player names
+        df['p1_depth'] = df['p1'].str.extract(r'Dpth_(\d+)').astype(int)
+        df['p1_breadth'] = df['p1'].str.extract(r'Brth_(\d+)').astype(int)
+        df['p2_depth'] = df['p2'].str.extract(r'Dpth_(\d+)').astype(int)
+        df['p2_breadth'] = df['p2'].str.extract(r'Brth_(\d+)').astype(int)
 
-        grouped = df.groupby('game_id')
-        for game_id, group in grouped:
-            plt.figure()
-            plt.scatter(group['normalized_turn'], group['time_taken'])
-            plt.title(f'Turn Number vs Time Taken for Game {game_id}')
-            plt.xlabel('Normalized Turn Number')
-            plt.ylabel('Time Taken')
-            plt.show()
+        # Calculate average depth and breadth
+        df['avg_depth'] = (df['p1_depth'] + df['p2_depth']) / 2
+        df['avg_breadth'] = (df['p1_breadth'] + df['p2_breadth']) / 2
+
+        # Calculate the average win percentage and other metrics for each depth-breadth combination
+        performance_metrics = df.groupby(['avg_depth', 'avg_breadth']).agg({
+            'p1_win_pct': 'mean',
+            'p2_win_pct': 'mean',
+            'p1_max_time': 'mean',
+            'p2_max_time': 'mean',
+            'p1_median_time': 'mean',
+            'p2_median_time': 'mean'
+        }).reset_index()
+
+        # Visualize the data
+        sns.pairplot(performance_metrics, kind="scatter", diag_kind="kde", markers="+",
+                     plot_kws={'alpha': 0.5}, diag_kws={'shade': True})
+        plt.show()
+
+        return performance_metrics
 
 
     @staticmethod
-    def plot_turn_data(file_path):
-        turn_numbers = []
-        turn_times = []
+    def plot_depth_vs_win_pct(file_path):
+        """
+        Determine whether win percentage is correlated with depth, including a regression line.
+        """
+        # Read the data
+        df = pd.read_csv(file_path)
+        
 
-        with open(file_path, 'r') as csvfile:
-            reader = csv.reader(csvfile)
-            next(reader)  # Skip the header
-            for row in reader:
-                turn_numbers.append(int(row[0]))
-                turn_times.append(float(row[1]))
+        # Extracting depth from player names
+        df['depth'] = df['p1'].str.extract(r'Dpth_(\d+)').astype(float)
 
+        # Calculating the average win percentage
+        df['avg_win_pct'] = df['p1_win_pct']
+
+        # Calculate the linear regression
+        slope, intercept, r_value, p_value, std_err = linregress(df['depth'], df['avg_win_pct'])
+        # Plotting with regression
+        # plt.figure(figsize=(10, 6))
+        # sns.regplot(x='depth', y='avg_win_pct', data=df, scatter_kws={'alpha':0.5})
+        # plt.xlabel('Depth')
+        # plt.ylabel('Average Win Percentage')
+        # plt.title('Average Win Percentage vs. Depth with Regression Line')
+        # plt.grid(True)
+        # plt.show()
+                # Plotting with regression
         plt.figure(figsize=(10, 6))
-        plt.plot(turn_numbers, turn_times, marker='o')
-        plt.title("Turn Times per Turn")
-        plt.xlabel("Turn Number")
-        plt.ylabel("Turn Time (seconds)")
+        sns.regplot(x='depth', y='avg_win_pct', data=df, scatter_kws={'alpha':0.5})
+        plt.xlabel('Depth')
+        plt.ylabel('Average Win Percentage')
+        plt.title(f'Average Win Percentage vs. Depth with Regression Line\nR-Squared: {r_value**2:.2f}')
         plt.grid(True)
         plt.show()
+
+    @staticmethod
+    def plot_breadth_vs_win_pct(file_path):
+        """
+        Determine whether win percentage is correlated with breadth, including a regression line.
+        """
+        # Read the data
+        df = pd.read_csv(file_path)
+
+        # Extracting breadth from player names
+        df['breadth'] = df['p1'].str.extract(r'Brth_(\d+)').astype(float)
+
+        # Calculating the average win percentage
+        df['avg_win_pct'] = df['p1_win_pct']
+
+        # Calculate the linear regression
+        slope, intercept, r_value, p_value, std_err = linregress(df['breadth'], df['avg_win_pct'])
+        # Plotting with regression
+        # plt.figure(figsize=(10, 6))
+        # sns.regplot(x='breadth', y='avg_win_pct', data=df, scatter_kws={'alpha':0.5})
+        # plt.xlabel('Breadth')
+        # plt.ylabel('Average Win Percentage')
+        # plt.title('Average Win Percentage vs. Breadth with Regression Line')
+        # plt.grid(True)
+        # plt.show()
+                # Plotting with regression
+        plt.figure(figsize=(10, 6))
+        sns.regplot(x='breadth', y='avg_win_pct', data=df, scatter_kws={'alpha':0.5})
+        plt.xlabel('Breadth')
+        plt.ylabel('Average Win Percentage')
+        plt.title(f'Average Win Percentage vs. Breadth with Regression Line\nR-Squared: {r_value**2:.2f}')
+        plt.grid(True)
+        plt.show()
+
+    @staticmethod
+    def conduct_ttest(csv_file, breadth1, breadth2):
+        '''
+        Conduct a t-test between the win percentage of two players with different breadths.
+        '''
+
+        # Load the data
+        df = pd.read_csv(csv_file)
+
+        # Extracting depth and breadth from player names
+        df['p1_breadth'] = df['p1'].str.extract(r'Brth_(\d+)').astype(int)
+        df['p2_breadth'] = df['p2'].str.extract(r'Brth_(\d+)').astype(int)
+
+        # Calculate win percentage for each player
+        df['p1_win_pct'] = df['p1_wins'] / (df['p1_wins'] + df['p2_wins'])
+        df['p2_win_pct'] = df['p2_wins'] / (df['p1_wins'] + df['p2_wins'])
+
+        # Filter data for the two specific breadths
+        group1 = df[(df['p1_breadth'] == breadth1) | (df['p2_breadth'] == breadth1)]
+        group2 = df[(df['p1_breadth'] == breadth2) | (df['p2_breadth'] == breadth2)]
+
+        # Choose the appropriate win percentage based on breadth
+        win_pct1 = group1['p1_win_pct'] if group1['p1_breadth'].iloc[0] == breadth1 else group1['p2_win_pct']
+        win_pct2 = group2['p1_win_pct'] if group2['p1_breadth'].iloc[0] == breadth2 else group2['p2_win_pct']
+
+        # Conduct T-test
+        t_stat, p_val = ttest_ind(win_pct1, win_pct2, nan_policy='omit')
+
+        print(f"T-Test between breadths {breadth1} and {breadth2}: Statistic = {t_stat}, P-value = {p_val}")
 
     @staticmethod
     def visualize_score_heatmap(csv_file):
         """
         Static method to visualize the scores as a heatmap.
         """
+        
         # Load the data
         tournament_data = pd.read_csv(csv_file)
+        
 
         # Creating a pivot table for the scores
         pivot_table_player_1 = tournament_data.pivot_table(index='p1', columns='p2', values='p1_wins')#, aggfunc=np.sum)
@@ -115,6 +210,8 @@ class TournamentVisualizer:
         combined_pivot = combined_pivot[total_wins.index]
 
         print(combined_pivot)
+        # conduct ttest
+        
 
         # make a mask so nans don't show up in the heatmap
         # 0 values still should show up
@@ -181,12 +278,65 @@ class TournamentVisualizer:
         plt.ylabel('Player')
         plt.show()
 
+    @staticmethod
+    def analyze_hyperparameter_impact(file_path):
+        """
+        Analyze the impact of board size, depth, and breadth on win percentage.
+        """
+        df = pd.read_csv(file_path)
+
+        # Extract depth, breadth, and board size from player names
+        df['depth'] = df['p1'].str.extract(r'Dpth_(\d+)').astype(int)
+        df['breadth'] = df['p1'].str.extract(r'Brth_(\d+)').astype(int)
+
+        # Calculate the win percentage for player 1
+        df['win_pct'] = df['p1_wins'] / (df['p1_wins'] + df['p2_wins'])
+
+        # Create a new DataFrame focusing on hyperparameters and their impact on win percentage
+        hyperparam_df = df[['board_size', 'depth', 'breadth', 'win_pct']]
+
+        # Visualize the data
+        sns.pairplot(hyperparam_df, kind="scatter", diag_kind="kde", markers="+",
+                     plot_kws={'alpha': 0.5}, diag_kws={'shade': True})
+        plt.show()
+
+        return hyperparam_df
+
+    @staticmethod
+    def unify_breadth_data(df):
+        """
+        Unify the breadth data from both p1 and p2.
+        """
+        df['p1_breadth'] = df['p1'].str.extract(r'Brth_(\d+)').astype(int)
+        df['p2_breadth'] = df['p2'].str.extract(r'Brth_(\d+)').astype(int)
+
+        p1_data = df[['p1', 'p1_breadth', 'p1_wins', 'p1_win_pct']].rename(columns={'p1': 'player', 'p1_breadth': 'breadth', 'p1_wins': 'wins', 'p1_win_pct': 'win_pct'})
+        p2_data = df[['p2', 'p2_breadth', 'p2_wins', 'p2_win_pct']].rename(columns={'p2': 'player', 'p2_breadth': 'breadth', 'p2_wins': 'wins', 'p2_win_pct': 'win_pct'})
+
+        combined_data = pd.concat([p1_data, p2_data])
+        return combined_data
+
+    @staticmethod
+    def analyze_breadth_impact(csv_file):
+        '''
+        Conduct an ANOVA test to compare win percentages across different breadths.
+        '''
+        # Load the data
+        df = pd.read_csv(csv_file)
+
+        # Unify breadth data
+        unified_data = TournamentVisualizer.unify_breadth_data(df)
+
+        # Group data by breadth and collect win percentages
+        breadth_groups = unified_data['breadth'].unique()
+        win_pct_groups = [unified_data[unified_data['breadth'] == breadth]['win_pct'].dropna() for breadth in breadth_groups]
+
+        # Conduct ANOVA test
+        f_stat, p_val = f_oneway(*win_pct_groups)
+
+        print(f"ANOVA test result: F-statistic = {f_stat}, P-value = {p_val}")
+
 if __name__ == "__main__":
     csv_file = 'simulation_results.csv'  # Replace with the path to your CSV file
     TournamentVisualizer.visualize_score_heatmap(csv_file)
-    TournamentVisualizer.visualize_total_wins(csv_file)
-    TournamentVisualizer.visualize_max_match_duration(csv_file)
-    #TournamentVisualizer.plot_turn_data('game_not_auto_played_A_vsB_turn_data.csv')
-    # game_data = [f"turn_data/game_{i}_student_agent_vs_alpha_agent_turn_data.csv" for i in range(12)]
-    # TournamentVisualizer.plot_average_turn_time(game_data)
-    TournamentVisualizer.plot_turn_number_vs_time_taken_for_each_game('turn_data/tournament_turn_data.csv')
+    #TournamentVisualizer.analyze_breadth_impact(csv_file)

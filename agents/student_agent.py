@@ -1,3 +1,4 @@
+from webbrowser import get
 from agents.agent import Agent
 from store import register_agent
 import numpy as np
@@ -13,6 +14,10 @@ from functools import lru_cache
 # functions that call them. The reason I didn't do this was because I was unsure about how much overhead
 # It would add, especially since we are using lru_cache to cache the results of these functions.
 # Whether this would actually be an issue idk.
+
+# Heuristic Weightings
+ZONE_CONTROL_WEIGHT = 0
+DISTANCE_WEIGHT = 1
 class BitBoard():
 
     def __init__(self,npboard=None, n=12):
@@ -488,6 +493,7 @@ class StudentAgent(Agent):
                     max_depth, 
                     time_limit=0.5,
                     breadth_limit=10,
+                    use_full_ordering=False
                     ):
             """
             children returned from generate children is a list of actiosn
@@ -496,12 +502,36 @@ class StudentAgent(Agent):
             start_time = time.time()
 
             def child_heuristic(child):
-                player_pos = state['player']
-                child_pos = child[0]
-                adv_pos = state['adversary']
-                distance_from_player = (player_pos[0] - child_pos[0])**2 + (player_pos[1] - child_pos[1])**2
-                distance_to_adv = (adv_pos[0] - child_pos[0])**2 + (adv_pos[1] - child_pos[1])**2
-                return distance_from_player * distance_to_adv  + distance_from_player
+                
+                def calculate_zone_control_potential(state, child):
+                    # OPTIONAL ORDERING HEURISTIC
+                    child_position = child[0]
+                    max_step = 2  # Limited radius for zone control estimation
+                    board = state['board']
+                    
+                    accessible_positions = get_possible_positions(board, max_step, child_position, depth_limited=True)
+                    return len(accessible_positions)
+
+                def calculate_distance_score(state, child):
+                    # OPTIONAL ORDERING HEURISTIC
+                    player_pos = state['player']
+                    adv_pos = state['adversary']
+                    child_pos = child[0]
+                    #return -h(child_pos, player_pos) + h(child_pos, adv_pos)
+                    #Use this for distance if there's too much caching
+                    distance_from_player = (player_pos[0] - child_pos[0])**2 + (player_pos[1] - child_pos[1])**2
+                    distance_to_adv = (adv_pos[0] - child_pos[0])**2 + (adv_pos[1] - child_pos[1])**2
+                    return distance_from_player * distance_to_adv  + distance_from_player
+
+                distance_score = calculate_distance_score(state, child)
+                zone_control_score = calculate_zone_control_potential(state, child)
+
+                # Apply weights to each score
+                weighted_distance = DISTANCE_WEIGHT * distance_score
+                weighted_zone_control = ZONE_CONTROL_WEIGHT * zone_control_score
+
+                # Combine the weighted scores for a final heuristic value
+                return weighted_distance + weighted_zone_control
 
             def minimax(cur_state, depth, alpha, beta):
                 # if max_player = True, then we are maximizing player
@@ -543,8 +573,17 @@ class StudentAgent(Agent):
             children = generate_children(state)
             # sort each child by its distance from the player
 
+            def get_utility(move):
+                perform_action(state, move)
+                val = utility(state)
+                undo_last_action(state)
+                return val
+            
             # the sort function sorts in 
-            children.sort(key=child_heuristic)
+            if use_full_ordering:
+                children.sort(key=get_utility)
+            else:
+                children.sort(key=child_heuristic)
             children = children[:breadth_limit]
 
             max_child = children[0]
@@ -557,12 +596,6 @@ class StudentAgent(Agent):
                     max_val = child_val
                     max_child = child
 
-            def get_utility(move):
-                perform_action(state, move)
-                val = utility(state)
-                undo_last_action(state)
-                return val
-
             #print(f'chosen action: {max_child}, val: {max_val}, utility: {get_utility(max_child)}')
             if max_val == -1:
                 for child in children:
@@ -572,7 +605,7 @@ class StudentAgent(Agent):
                     if child_val > max_val:
                         max_val = child_val
                         max_child = child
-                print(f'chosen action: {max_child}, val: {max_val} utility: {get_utility(max_child)}')
+                #print(f'chosen action: {max_child}, val: {max_val} utility: {get_utility(max_child)}')
 
             return max_child
 
@@ -609,6 +642,7 @@ class StudentAgent(Agent):
                 self.kwargs.get('max_depth',2),
                 self.kwargs.get('time_limit',1.0),
                 self.kwargs.get('breadth_limit',400),
+                self.kwargs.get('use_full_ordering', False)
             )
         elif self.strategy == "Random":
             new_action = generate_children(state)[np.random.randint(len(generate_children(state)))]
@@ -619,7 +653,7 @@ class StudentAgent(Agent):
 
         time_taken = time.time() - start_time
 
-        #print("My ALPHA-BETA AI's turn took ", time_taken, "seconds.")
+        print(f"My {self.name} turn took ", time_taken, "seconds.")
 
 
         return new_action

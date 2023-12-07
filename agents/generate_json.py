@@ -1,13 +1,16 @@
 import json
 import itertools
 
+from matplotlib import use
+
 def generate_agent_configs():
     max_depths = range(2, 3, 1)
     simulation_depths = range(50, 200, 50)
     time_limits = [1.0]
     exploration_constants = [0.5, 1.0, 1.5]
-    breadth_limits = range(250, 951, 100)
+    breadth_limits = range(350, 651, 300)
     dynamic_policies = [False]
+    use_full_ordering = [True, False]
     agents = []
 
     # # Generate MCTS agents
@@ -25,8 +28,8 @@ def generate_agent_configs():
     #     })
 
     # Generate AlphaBeta agents
-    for depth, breadth, time_limit, dynamic_policy in itertools.product(max_depths, breadth_limits, time_limits, dynamic_policies):
-        agent_name = f"AB_Dpth_{depth}_Brth_{breadth}_dp{dynamic_policy}"
+    for depth, breadth, time_limit, ordering in itertools.product(max_depths, breadth_limits, time_limits, use_full_ordering):
+        agent_name = f"AB_Dpth_{depth}_Brth_{breadth}_dp{ordering}"
         agents.append({
             "name": agent_name,
             "strategy": "AlphaBeta",
@@ -34,7 +37,7 @@ def generate_agent_configs():
                 "max_depth": depth,
                 "breadth_limit": breadth,
                 "time_limit": time_limit,
-                "dynamic_policy": dynamic_policy
+                "use_full_ordering": ordering
             }
         })
     import os
