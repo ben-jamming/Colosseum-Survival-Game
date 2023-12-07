@@ -87,7 +87,7 @@ class StudentAgent(Agent):
             start_time = time.time()
             max_depth = self.kwargs.get('max_depth',2)
 
-            if self.kwargs.get('deepening', False):
+            if not self.kwargs.get('deepening', False):
                 new_action = AlphaBeta.get_action(
                     generate_children,
                     utility,
@@ -99,6 +99,7 @@ class StudentAgent(Agent):
                 )
             else:
               depth = 1
+              print("DOING DEEPENING")
               while time.time() - start_time < 0.5 and depth <= max_depth:
                   new_action = AlphaBeta.get_action(
                       generate_children,
@@ -120,7 +121,8 @@ class StudentAgent(Agent):
 
         time_taken = time.time() - start_time
         
-        #print("My MCTS AI's turn took ", time_taken, "seconds.")
+        print(f"{ self.name} turn took ", time_taken, "seconds.")
+        # print name
         # print chosen action
         # print("My MCTS AI's action: ", new_action)
         # print walls at that cell

@@ -4,19 +4,19 @@
             "name": "AlphaAgent_300",
             "strategy": "AlphaBeta",
             "parameters": {
-                "max_depth": 10,
+                "max_depth": 2,
                 "breadth_limit": 366,
-                "time_limit": 0.6,
+                "time_limit": 0.2,
                 "dynamic_policy": false
             }
         },
         {
-            "name": "AlphaAgent_300_window",
+            "name": "AlphaAgent_300_deepening",
             "strategy": "AlphaBeta",
             "parameters": {
                 "max_depth": 10000,
                 "breadth_limit": 366,
-                "time_limit": 0.6,
+                "time_limit": 0.2,
                 "dynamic_policy": false,
                 "deepening": true
             }

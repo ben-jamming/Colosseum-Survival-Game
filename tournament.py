@@ -55,13 +55,13 @@ class Tournament:
             queue = manager.Queue()
             writer_proc = Process(target=self.writer_process, args=(queue,))
             writer_proc.start()
-            simulations = [(player1, player2, queue) for player1, player2 in itertools.combinations_with_replacement(self.players, 2)]
+            simulations = [(player1, player2, queue) for player1, player2 in itertools.combinations(self.players, 2)]
             
 
             # IMPORTANT
             # MAKE THIS WHATEVER THE MAXIMUM NUMBER OF THREADS
             # YOU THINK YOU CAN HANDLE IS
-            with Pool(8) as pool:
+            with Pool(1) as pool:
                 pool.starmap(self._run_simulation, simulations)
 
             # Signal the writer process to terminate
@@ -87,7 +87,7 @@ class Tournament:
         simulator.autoplay()
 
 if __name__ == "__main__":
-    with open('agents/agent_config.json', 'r') as file:
+    with open('agents/agent_configurations.json', 'r') as file:
         config = json.load(file)
         players = [agent['name'] for agent in config['agents']]
         

@@ -103,7 +103,7 @@ def count_closest_cells(adversary_distances, player_distances):
 
     return closest_cells
 
-@lru_cache(maxsize=1000000)
+# @lru_cache(maxsize=1000000)
 def simple_territory_search(board, player, adversary, max_step):
     """
     Do a bfs from both the player and the adversary and get their distance to every square
@@ -198,7 +198,7 @@ def utility(state):
     return ((point_p - point_a) / (point_p + point_a))  * win_priority_scaler    
 
 
-@lru_cache(maxsize=1000000)
+# @lru_cache(maxsize=1000000)
 def get_possible_positions(board,
                            max_step,
                            position,

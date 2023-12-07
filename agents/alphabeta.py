@@ -116,12 +116,12 @@ class AlphaBeta:
             undo_last_action(state)
             return val
         
-        print(f'chosen action: {max_child}, val: {max_val}, utility: {get_utility(max_child)}')
+        print(f'chosen action: {max_child}, val: {max_val:.2f} max_depth: {max_depth_reached} utility: {get_utility(max_child):.2f}')
         # print max depth reached
-        print(f'max depth reached: {max_depth_reached}')
+        # print(f'max depth reached: {max_depth_reached}')
 
         # range of game
-        print(f'alpha: {max_alpha}, beta: {min_beta}')
+        # print(f'alpha: {max_alpha}, beta: {min_beta}')
 
         if max_val == -1:
             for child in children:
@@ -131,9 +131,9 @@ class AlphaBeta:
                 if child_val > max_val:
                     max_val = child_val
                     max_child = child
-            print(f'chosen action: {max_child}, val: {max_val} utility: {get_utility(max_child)}')
+            # print(f'chosen action: {max_child}, val: {max_val} utility: {get_utility(max_child)}')
         
-        print('iterations: ', iterations)
+        # print('iterations: ', iterations)
 
 
         
