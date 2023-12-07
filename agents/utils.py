@@ -3,14 +3,14 @@ from collections import deque
 import random
 from functools import lru_cache
 
-@lru_cache(maxsize=100000)
+@lru_cache(maxsize=1000)
 def h(current, adversary):
 
     dist =  (current[0] - adversary[0])**2 + (current[1] - adversary[1])**2
     # rount to 2 decimal places
     return dist
 
-@lru_cache(maxsize=600)
+@lru_cache(maxsize=3000)
 def get_adjacent_moves(position, walls,
                        obstacle=None,
                        ):
@@ -103,7 +103,7 @@ def count_closest_cells(adversary_distances, player_distances):
 
     return closest_cells
 
-# @lru_cache(maxsize=1000000)
+@lru_cache(maxsize=1000)
 def simple_territory_search(board, player, adversary, max_step):
     """
     Do a bfs from both the player and the adversary and get their distance to every square
@@ -198,7 +198,7 @@ def utility(state):
     return ((point_p - point_a) / (point_p + point_a))  * win_priority_scaler    
 
 
-# @lru_cache(maxsize=1000000)
+@lru_cache(maxsize=1000)
 def get_possible_positions(board,
                            max_step,
                            position,
@@ -252,7 +252,7 @@ def get_possible_positions(board,
 
     return distances
 
-def get_possible_moves(state):
+def get_possible_moves(state, terminal_check=True):
     """
     This uses all the possible positions to get the possible moves
     A possible move is a position you can go where you can place a wall
@@ -260,9 +260,10 @@ def get_possible_moves(state):
     each placeable wall counts as a different move
     A move is a tuple of (position, wall)
     """
-    terminal, explore = is_terminal(state)
-    if terminal:
-        return []
+    if terminal_check:
+      terminal, explore = is_terminal(state)
+      if terminal:
+          return []
     pos = state['adversary']
     blocker = state['player'] 
     if state['is_player_turn']:
@@ -280,12 +281,12 @@ def get_possible_moves(state):
             possible_moves.append((position, i))
     return possible_moves
 
-def generate_children(state):
+def generate_children(state, terminal_check=True):
     """
     This generates the children of a given state
     An action that mutates the state of the board
     """
-    possible_moves = get_possible_moves(state)
+    possible_moves = get_possible_moves(state, terminal_check=terminal_check)
     return possible_moves
 
 def perform_action(state, action):

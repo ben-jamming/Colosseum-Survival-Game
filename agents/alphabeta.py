@@ -12,7 +12,8 @@ class AlphaBeta:
                    max_depth, 
                    time_limit=0.5,
                    breadth_limit=10,
-                   start_ab = (float('-inf'), float('inf'))
+                   start_ab = (float('-inf'), float('inf')),
+                   terminal_check=True
                    ):
         """
         children returned from generate children is a list of actiosn
@@ -56,7 +57,9 @@ class AlphaBeta:
             if depth == max_depth:
                 return utility(cur_state)
             
-            children = generate_children(cur_state)
+            # only do a terminal check, if the number of 
+            
+            children = generate_children(cur_state, terminal_check=terminal_check)
             children.sort(key=child_heuristic)
             children = children[:int(breadth_limit/depth)]
             
@@ -90,7 +93,7 @@ class AlphaBeta:
 
 
         # get the move that maximizes the utility
-        children = generate_children(state)
+        children = generate_children(state, terminal_check=terminal_check)
         # sort each child by its distance from the player
             
         # the sort function sorts in 

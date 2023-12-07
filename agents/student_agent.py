@@ -5,6 +5,8 @@ from store import register_agent
 import numpy as np
 import time
 from .bitboard import BitBoard
+import signal
+import math
 
 
 from .alphabeta import AlphaBeta
@@ -57,6 +59,8 @@ class StudentAgent(Agent):
 
         start_time = time.time()
 
+        def handler(signum, frame):
+          raise Exception("Timeout!")
         wall_count = np.sum(chess_board[:,:,3])
 
         progression = wall_count / (len(chess_board) * len(chess_board[0]))
@@ -95,22 +99,33 @@ class StudentAgent(Agent):
                     max_depth=max_depth,
                     time_limit=self.kwargs.get('time_limit',1.0),
                     breadth_limit=self.kwargs.get('breadth_limit',400),
-                    start_ab=self.kwargs.get('start_ab', (float('-inf'), float('inf')))
+                    start_ab=self.kwargs.get('start_ab', (float('-inf'), float('inf'))),
+                    terminal_check=self.kwargs.get('terminal_check', True)
                 )
             else:
-              depth = 1
+              depth = self.kwargs.get('start_depth',1.0)
+              signal.signal(signal.SIGALRM, handler)
+              time_limit = self.kwargs.get('time_limit',1.0)
+              signal.alarm(math.ceil(time_limit))
+              terminal_check = self.kwargs.get('terminal_check', True)
               print("DOING DEEPENING")
-              while time.time() - start_time < 0.5 and depth <= max_depth:
-                  new_action = AlphaBeta.get_action(
-                      generate_children,
-                      utility,
-                      state,
-                      max_depth=depth,
-                      time_limit=self.kwargs.get('time_limit',1.0),
-                      breadth_limit=self.kwargs.get('breadth_limit',400),
-                      start_ab=self.kwargs.get('start_ab', (float('-inf'), float('inf')))
-                  )
+              while time.time() - start_time < time_limit and depth <= max_depth:
+                  try:
+                      new_action = AlphaBeta.get_action(
+                          generate_children,
+                          utility,
+                          state,
+                          max_depth=depth,
+                          time_limit=self.kwargs.get('time_limit',1.0),
+                          breadth_limit=self.kwargs.get('breadth_limit', 400),
+                          start_ab=self.kwargs.get('start_ab', (float('-inf'), float('inf'))),
+                          terminal_check=terminal_check
+                      )
+                  except Exception as e:
+                      print("TIMED OUT")
+                      break
                   depth += 1
+              signal.alarm(0)
 
         elif self.strategy == "Random":
             new_action = generate_children(state)[np.random.randint(len(generate_children(state)))]

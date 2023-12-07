@@ -1,25 +1,18 @@
 {
     "agents": [
         {
-            "name": "AlphaAgent_300",
-            "strategy": "AlphaBeta",
-            "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 366,
-                "time_limit": 0.2,
-                "dynamic_policy": false
-            }
-        },
-        {
-            "name": "AlphaAgent_300_deepening",
-            "strategy": "AlphaBeta",
-            "parameters": {
-                "max_depth": 10000,
-                "breadth_limit": 366,
-                "time_limit": 0.2,
-                "dynamic_policy": false,
-                "deepening": true
-            }
+          "name": "AlphaAgent_ids_ab6",
+          "strategy": "AlphaBeta",
+          "parameters": {
+              "max_depth": 10,
+              "breadth_limit": 336,
+              "time_limit": 0.5,
+              "dynamic_policy": false,
+              "deepening": true,
+              "start_depth": 1,
+              "start_ab": [-0.6,0.6],
+              "terminal_check": false
         }
+      }
     ]
 }
