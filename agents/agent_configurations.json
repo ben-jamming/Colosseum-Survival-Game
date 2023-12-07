@@ -1,23 +1,24 @@
 {
     "agents": [
         {
-            "name": "AB_Dpth_2_Brth_400_dpTrue",
+            "name": "AlphaAgent_300",
             "strategy": "AlphaBeta",
             "parameters": {
-                "max_depth": 2,
-                "breadth_limit": 300,
-                "time_limit": 0.1,
-                "dynamic_policy": true
+                "max_depth": 10,
+                "breadth_limit": 366,
+                "time_limit": 0.6,
+                "dynamic_policy": false
             }
         },
         {
-            "name": "AB_Dpth_2_Brth_400_dpFalse",
+            "name": "AlphaAgent_300_window",
             "strategy": "AlphaBeta",
             "parameters": {
-                "max_depth": 3,
-                "breadth_limit": 300,
-                "time_limit": 0.05,
-                "dynamic_policy": false
+                "max_depth": 10000,
+                "breadth_limit": 366,
+                "time_limit": 0.6,
+                "dynamic_policy": false,
+                "deepening": true
             }
         }
     ]

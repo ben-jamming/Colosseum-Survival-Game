@@ -83,14 +83,34 @@ class StudentAgent(Agent):
                 exploration_constant=self.kwargs.get('exploration_constant',0.5)
             )
         elif self.strategy == "AlphaBeta":
-            new_action = AlphaBeta.get_action(
-                generate_children,
-                utility,
-                state,
-                self.kwargs.get('max_depth',2),
-                self.kwargs.get('time_limit',1.0),
-                self.kwargs.get('breadth_limit',400),
-            )
+            # iterative deepening
+            start_time = time.time()
+            max_depth = self.kwargs.get('max_depth',2)
+
+            if self.kwargs.get('deepening', False):
+                new_action = AlphaBeta.get_action(
+                    generate_children,
+                    utility,
+                    state,
+                    max_depth=max_depth,
+                    time_limit=self.kwargs.get('time_limit',1.0),
+                    breadth_limit=self.kwargs.get('breadth_limit',400),
+                    start_ab=self.kwargs.get('start_ab', (float('-inf'), float('inf')))
+                )
+            else:
+              depth = 1
+              while time.time() - start_time < 0.5 and depth <= max_depth:
+                  new_action = AlphaBeta.get_action(
+                      generate_children,
+                      utility,
+                      state,
+                      max_depth=depth,
+                      time_limit=self.kwargs.get('time_limit',1.0),
+                      breadth_limit=self.kwargs.get('breadth_limit',400),
+                      start_ab=self.kwargs.get('start_ab', (float('-inf'), float('inf')))
+                  )
+                  depth += 1
+
         elif self.strategy == "Random":
             new_action = generate_children(state)[np.random.randint(len(generate_children(state)))]
             
@@ -102,9 +122,9 @@ class StudentAgent(Agent):
         
         #print("My MCTS AI's turn took ", time_taken, "seconds.")
         # print chosen action
-        print("My MCTS AI's action: ", new_action)
+        # print("My MCTS AI's action: ", new_action)
         # print walls at that cell
-        print("Walls at that cell: ", chess_board[new_action[0][0], new_action[0][1], 0:4])
+        # print("Walls at that cell: ", chess_board[new_action[0][0], new_action[0][1], 0:4])
 
 
         return new_action
