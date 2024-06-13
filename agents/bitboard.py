@@ -43,7 +43,7 @@ class BitBoard():
         bit_index = self.bit_index(i, j, wall)
         return (int(self.board) & int(1 << bit_index)) != 0
     
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=3000)
     def walls(self, pos):
         i, j = pos
         # use bit shiftin to get the walls
